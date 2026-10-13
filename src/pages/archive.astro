@@ -1,0 +1,7 @@
+---
+import Base from '../layouts/Base.astro';
+import { posts } from '../lib/content';
+import { dateLabel,href } from '../site';
+const entries=await posts();const years=[...new Set(entries.map(e=>e.data.date.getUTCFullYear()))];
+---
+<Base title="归档"><div class="page-shell"><header class="page-header"><p class="eyebrow">ARCHIVE / 时间留下的页码</p><h1>时间归档</h1><p>按时间回看，每一次记录。</p></header>{years.map(year=><section><h2 class="archive-year">{year}</h2>{entries.filter(e=>e.data.date.getUTCFullYear()===year).map(entry=><a class="archive-row" href={href(`blog/${entry.id}/`)}><time datetime={entry.data.date.toISOString()}>{dateLabel(entry.data.date)}</time><span>{entry.data.title}</span>{entry.data.demo&&<span class="demo-badge">示例</span>}</a>)}</section>)}{!entries.length&&<p class="empty-state">还没有文章可以归档。</p>}</div></Base>

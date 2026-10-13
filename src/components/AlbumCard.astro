@@ -1,0 +1,9 @@
+---
+import { href } from '../site';
+import type { CollectionEntry } from 'astro:content';
+const { entry } = Astro.props as { entry: CollectionEntry<'albums'> };
+---
+<a class="album-card" href={href(`albums/${entry.id}/`)}>
+  {entry.data.images[0] ? <img src={href(entry.data.images[0].src)} width={entry.data.images[0].width} height={entry.data.images[0].height} alt={entry.data.images[0].alt} loading="lazy" /> : <div class="album-empty">尚未添加照片</div>}
+  <div><h3>{entry.data.title}<span>↗</span></h3><p>{entry.data.description}</p>{entry.data.demo && <span class="demo-badge">示例插画 · 非个人摄影</span>}</div>
+</a>

@@ -1,0 +1,25 @@
+{
+  "name": "void-piano-blog",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev --host 127.0.0.1",
+    "build": "astro build && pagefind --site dist",
+    "preview": "astro preview --host 127.0.0.1",
+    "check": "astro check",
+    "test": "node --test tests/*.test.mjs"
+  },
+  "dependencies": {
+    "astro": "7.3.8",
+    "three": "0.186.1",
+    "tone": "15.1.22"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.10",
+    "@types/three": "0.186.0",
+    "pagefind": "1.5.2",
+    "playwright": "^1.64.0",
+    "typescript": "^5.9.0"
+  }
+}

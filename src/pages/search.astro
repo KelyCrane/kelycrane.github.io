@@ -1,0 +1,11 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base title="搜索"><div class="page-shell"><header class="page-header"><p class="eyebrow">SEARCH / 找到一段记录</p><h1>搜索</h1><p>搜索文章、作品与相册，无需登录。</p></header><label for="search-input" class="eyebrow">输入关键词</label><input class="search-input" id="search-input" type="search" placeholder="试试“钢琴”或“记录”" autocomplete="off" data-base={import.meta.env.BASE_URL}/><p id="search-status" class="search-status" role="status" aria-live="polite">输入关键词开始搜索。</p><div id="search-results"></div><noscript><p class="empty-state">搜索需要 JavaScript；可通过分类和归档浏览内容。</p></noscript></div></Base>
+<script>
+interface SearchHit { data:()=>Promise<{url:string;meta:{title:string};excerpt:string}>; }
+interface SearchIndex { search:(term:string)=>Promise<{results:SearchHit[]}>; }
+const input=document.querySelector<HTMLInputElement>('#search-input')!;const status=document.querySelector<HTMLElement>('#search-status')!;const container=document.querySelector<HTMLElement>('#search-results')!;let sequence=0;let timer:ReturnType<typeof setTimeout>;let index:SearchIndex|undefined;
+input.dataset.ready='true';
+input.addEventListener('input',()=>{clearTimeout(timer);const request=++sequence;timer=setTimeout(async()=>{const term=input.value.trim();container.replaceChildren();if(!term){status.textContent='输入关键词开始搜索。';return;}status.textContent='正在查找…';try{if(!index){const path=`${input.dataset.base}pagefind/pagefind.js`;index=await import(/* @vite-ignore */ path);}const response=await index!.search(term);const hits=await Promise.all(response.results.slice(0,20).map(hit=>hit.data()));if(request!==sequence)return;status.textContent=response.results.length?`找到 ${response.results.length} 条结果${response.results.length>20?'，展示前 20 条':''}`:'没有找到相关内容，试试其他关键词。';for(const hit of hits){const link=document.createElement('a');link.className='search-result';link.href=hit.url;const title=document.createElement('h2');title.textContent=hit.meta.title||'未命名内容';const excerpt=document.createElement('p');excerpt.textContent=new DOMParser().parseFromString(hit.excerpt,'text/html').body.textContent;link.append(title,excerpt);container.append(link);}}catch{if(request===sequence)status.textContent='搜索索引暂时无法加载。开发环境请先构建网站；稍后输入关键词可重试。';index=undefined;}},180);});
+</script>

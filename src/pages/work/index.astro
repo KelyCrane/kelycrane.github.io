@@ -1,0 +1,7 @@
+---
+import Base from '../../layouts/Base.astro';
+import EntryCard from '../../components/EntryCard.astro';
+import { projects } from '../../lib/content';
+const entries=await projects();
+---
+<Base title="作品"><div class="page-shell"><header class="page-header"><p class="eyebrow">WORK / 想法的形状</p><h1>作品</h1><p>一些尝试，一些探索，以及尚在生长的想法。</p></header>{entries.length?<div class="entry-grid">{entries.map((entry,index)=><EntryCard entry={entry} type="work" index={index}/>)}</div>:<p class="empty-state">作品还在准备中。</p>}</div></Base>

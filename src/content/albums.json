@@ -1,0 +1,9 @@
+[
+  { "id":"quiet-shapes", "title":"光与形 · 示例相册", "description":"原创示例插画，用于预览相册布局；不是个人摄影。", "date":"2026-10-13", "demo":true, "featured":true,
+    "images":[
+      {"src":"images/album-light.svg","alt":"示例插画：紫色天空下的几何山峦","caption":"光落在山的轮廓上 · 示例插画","width":1200,"height":900},
+      {"src":"images/album-sea.svg","alt":"示例插画：安静海面与暖色落日","caption":"水面留下一道余光 · 示例插画","width":1200,"height":900},
+      {"src":"images/album-window.svg","alt":"示例插画：窗边的光与圆形影子","caption":"午后，一束斜斜的光 · 示例插画","width":1200,"height":900}
+    ]
+  }
+]

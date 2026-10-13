@@ -1,0 +1,13 @@
+---
+import Base from '../../layouts/Base.astro';
+import { albums } from '../../lib/content';
+import { href } from '../../site';
+export async function getStaticPaths(){return (await albums()).map(entry=>({params:{id:entry.id},props:{entry}}));}
+const {entry}=Astro.props;
+---
+<Base title={entry.data.title} description={entry.data.description}><div class="page-shell" data-pagefind-body><header class="page-header"><p class="eyebrow">GALLERY / 主题相册</p><h1 data-pagefind-meta="title">{entry.data.title}</h1><p>{entry.data.description}</p>{entry.data.demo&&<p><span class="demo-badge">示例插画 · 非个人摄影</span></p>}</header><div class="gallery">{entry.data.images.map((image,index)=><figure><button type="button" class="gallery-open" data-src={href(image.src)} data-alt={image.alt} data-caption={image.caption||image.alt} data-index={index} aria-label={`查看大图：${image.alt}`}><img src={href(image.src)} alt={image.alt} width={image.width} height={image.height} loading="lazy"/></button><figcaption>{image.caption||image.alt}</figcaption></figure>)}</div>{!entry.data.images.length&&<p class="empty-state">这个相册还没有照片。</p>}<a class="back-link" href={href('albums/')}>← 返回相册</a></div><dialog class="lightbox" aria-label="图片大图" data-pagefind-ignore><button class="lightbox-close" type="button" aria-label="关闭大图">×</button><button class="lightbox-nav lightbox-prev" type="button" aria-label="上一张">←</button><img src="" alt=""/><p></p><button class="lightbox-nav lightbox-next" type="button" aria-label="下一张">→</button></dialog></Base>
+<script>
+const dialog=document.querySelector<HTMLDialogElement>('.lightbox')!;const buttons=Array.from(document.querySelectorAll<HTMLButtonElement>('.gallery-open'));let index=0;
+function show(next:number){index=(next+buttons.length)%buttons.length;const button=buttons[index];const image=dialog.querySelector('img')!;image.src=button.dataset.src!;image.alt=button.dataset.alt!;dialog.querySelector('p')!.textContent=`${index+1} / ${buttons.length} · ${button.dataset.caption}`;}
+buttons.forEach((button,i)=>button.addEventListener('click',()=>{show(i);dialog.showModal();}));dialog.querySelector('.lightbox-close')?.addEventListener('click',()=>dialog.close());dialog.querySelector('.lightbox-prev')?.addEventListener('click',()=>show(index-1));dialog.querySelector('.lightbox-next')?.addEventListener('click',()=>show(index+1));dialog.addEventListener('click',event=>{if(event.target===dialog)dialog.close();});dialog.addEventListener('keydown',event=>{if(event.key==='ArrowLeft')show(index-1);if(event.key==='ArrowRight')show(index+1);});
+</script>

@@ -1,0 +1,7 @@
+import { readFile,readdir,stat } from 'node:fs/promises';
+import { join,resolve } from 'node:path';
+import assert from 'node:assert/strict';
+const root=resolve('dist');let count=0;const base=process.env.BASE_PATH||'/';
+async function walk(dir){for(const item of await readdir(dir,{withFileTypes:true})){const path=join(dir,item.name);if(item.isDirectory())await walk(path);else if(item.name.endsWith('.html')){count++;const source=await readFile(path,'utf8');for(const match of source.matchAll(/(?:href|src)="([^"]*)"/g)){const ref=match[1];if(!ref||ref.startsWith('#')||/^(https?:|data:|mailto:|javascript:)/.test(ref))continue;const url=new URL(ref,'https://local.test/'+path.slice(root.length+1).replaceAll('\\','/'));let pathname=decodeURIComponent(url.pathname);if(!pathname.startsWith(base))throw new Error(`链接缺少路径前缀: ${ref}`);pathname=pathname.slice(base.length);let dest=join(root,pathname);try{if((await stat(dest)).isDirectory())dest=join(dest,'index.html');await stat(dest);}catch{throw new Error(`无效链接 ${ref}，来源 ${path}`);}}}}}
+await walk(root);assert.ok(count>=10,'应生成所有核心页面');const sampleDir=join(root,'audio/piano');const samples=(await readdir(sampleDir)).filter(f=>f.endsWith('.mp3'));assert.equal(samples.length,26,'必须随站点托管 26 个采样');for(const file of samples){const data=await readFile(join(sampleDir,file));assert.ok(data.length>1000);assert.ok(data[0]===255||data.subarray(0,3).toString()==='ID3',`${file} 必须是有效 MP3`);}
+await stat(join(root,'pagefind/pagefind.js'));console.log(`已验证 ${count} 个页面的内部链接、图片和 26 个音色文件。`);

@@ -1,0 +1,11 @@
+---
+import { href, dateLabel } from '../site';
+interface Props { entry: { id: string; data: { title: string; description: string; date: Date; demo?: boolean; category?: string; tags?: string[] } }; type?: 'blog' | 'work'; index?: number; }
+const { entry, type = 'blog', index = 0 } = Astro.props;
+---
+<a class:list={['entry-card',type === 'work' && 'work-card']} href={href(`${type}/${entry.id}/`)}>
+  {type === 'work' && <div class="work-art" aria-hidden="true"><span class="work-orbit"></span><span class="work-mark">{String(index+1).padStart(2,'0')}</span></div>}
+  <div class="entry-meta"><span>{entry.data.category || '作品'}</span><time datetime={entry.data.date.toISOString()}>{dateLabel(entry.data.date)}</time>{entry.data.demo && <span class="demo-badge">示例</span>}</div>
+  <h3>{entry.data.title}<span aria-hidden="true">↗</span></h3><p>{entry.data.description}</p>
+  <div class="entry-tags">{entry.data.tags?.map(tag => <span>#{tag}</span>)}</div>
+</a>

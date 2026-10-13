@@ -1,0 +1,10 @@
+import { chromium, devices } from 'playwright';
+import { mkdir, realpath } from 'node:fs/promises';
+import { resolve } from 'node:path';
+const root=await realpath(process.cwd());const dir=resolve(root,'.storage/qa');await mkdir(dir,{recursive:true});
+if(root.toLowerCase().startsWith('c:'))throw new Error('检查输出必须在 D 盘');
+const browser=await chromium.launch({headless:true,executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',args:['--disk-cache-dir='+resolve(root,'.storage/cache/chrome'),'--disable-crash-reporter','--disable-breakpad']});
+const page=await browser.newPage({viewport:{width:1440,height:1000}});const errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
+await page.goto('http://127.0.0.1:4321/');await page.waitForSelector('.scene-ready',{timeout:30000});await page.waitForTimeout(1800);await page.screenshot({path:resolve(dir,'desktop-home.png'),fullPage:true});
+console.log(JSON.stringify({title:await page.title(),keys:await page.locator('[data-piano-note]').count(),errors},null,2));
+const mobile=await browser.newContext({...devices['iPhone 13']});const phone=await mobile.newPage();await phone.goto('http://127.0.0.1:4321/');await phone.waitForSelector('.scene-ready');await phone.waitForTimeout(1200);await phone.screenshot({path:resolve(dir,'mobile-home.png'),fullPage:true});console.log('Screenshots: '+dir);await browser.close();

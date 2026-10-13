@@ -1,0 +1,19 @@
+---
+import Base from '../layouts/Base.astro';
+import EntryCard from '../components/EntryCard.astro';
+import { posts, projects } from '../lib/content';
+import { href } from '../site';
+export async function getStaticPaths(){
+  const articles=await posts();const work=await projects();
+  const categories=[...new Set(articles.map(e=>e.data.category))].sort();
+  const tags=[...new Set([...articles,...work].flatMap(e=>e.data.tags))].sort();
+  return [
+    {params:{taxonomy:'categories'},props:{title:'分类',values:categories,kind:'categories'}},
+    {params:{taxonomy:'tags'},props:{title:'标签',values:tags,kind:'tags'}},
+    ...categories.map(value=>({params:{taxonomy:`categories/${value}`},props:{title:value,values:[],kind:'categories',entries:articles.filter(e=>e.data.category===value),workEntries:[]}})),
+    ...tags.map(value=>({params:{taxonomy:`tags/${value}`},props:{title:`#${value}`,values:[],kind:'tags',entries:articles.filter(e=>e.data.tags.includes(value)),workEntries:work.filter(e=>e.data.tags.includes(value))}}))
+  ];
+}
+const {title,values,kind,entries=[],workEntries=[]}=Astro.props;
+---
+<Base title={title}><div class="page-shell"><header class="page-header"><p class="eyebrow">EXPLORE / 寻找感兴趣的内容</p><h1>{title}</h1></header>{values.length?<div class="chips">{values.map((value:string)=><a class="chip" href={href(`${kind}/${encodeURIComponent(value)}/`)}>{value}</a>)}</div>:entries.length||workEntries.length?<div class="entry-grid">{entries.map(entry=><EntryCard entry={entry}/>)}{workEntries.map(entry=><EntryCard entry={entry} type="work"/>)}</div>:<p class="empty-state">这里暂时没有内容。</p>}<a class="back-link" href={href('blog/')}>← 返回文章列表</a></div></Base>

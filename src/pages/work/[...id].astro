@@ -1,0 +1,9 @@
+---
+import { render } from 'astro:content';
+import { projects } from '../../lib/content';
+import Article from '../../layouts/Article.astro';
+export async function getStaticPaths(){return (await projects()).map(entry=>({params:{id:entry.id},props:{entry}}));}
+const {entry}=Astro.props;
+const {Content,headings}=await render(entry);
+---
+<Article entry={entry} headings={headings} type="work"><Content/>{entry.data.url&&<p class="prose"><a href={entry.data.url} target="_blank" rel="noopener noreferrer">查看作品 ↗</a></p>}</Article>

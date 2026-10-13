@@ -1,0 +1,7 @@
+---
+import Base from '../../layouts/Base.astro';
+import AlbumCard from '../../components/AlbumCard.astro';
+import { albums } from '../../lib/content';
+const entries=await albums();
+---
+<Base title="相册"><div class="page-shell"><header class="page-header"><p class="eyebrow">GALLERY / 留住瞬间</p><h1>相册</h1><p>按主题收藏影像。当前展示的是示例插画，等待替换为你的摄影。</p></header>{entries.length?<div class="album-grid">{entries.map(entry=><AlbumCard entry={entry}/>)}</div>:<p class="empty-state">尚未添加相册。</p>}</div></Base>

@@ -1,0 +1,8 @@
+---
+import Base from '../../layouts/Base.astro';
+import EntryCard from '../../components/EntryCard.astro';
+import { posts } from '../../lib/content';
+import { href } from '../../site';
+const entries=await posts();
+---
+<Base title="文章"><div class="page-shell"><header class="page-header"><p class="eyebrow">JOURNAL / 文字记录</p><h1>文章</h1><p>把零散的思绪，慢慢写成篇章。</p></header><nav class="subnav" aria-label="文章浏览"><a href={href('categories/')}>按分类浏览</a><a href={href('tags/')}>按标签浏览</a><a href={href('archive/')}>时间归档</a><a href={href('search/')}>搜索</a></nav>{entries.length?<div class="entry-grid">{entries.map(entry=><EntryCard entry={entry}/>)}</div>:<p class="empty-state">还没有文章，第一篇正在酝酿中。</p>}</div></Base>

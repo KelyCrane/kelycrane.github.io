@@ -1,0 +1,6 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { makeKeyLayout,noteName,noteFrequency } from '../src/piano/notes.mjs';
+test('full concert keyboard spans A0 through C8 with 52 white and 36 black keys',()=>{const keys=makeKeyLayout();assert.equal(keys.length,88);assert.equal(keys[0].name,'A0');assert.equal(keys.at(-1).name,'C8');assert.equal(keys.filter(k=>!k.black).length,52);assert.equal(keys.filter(k=>k.black).length,36);assert.equal(new Set(keys.map(k=>k.midi)).size,88);});
+test('concert tuning and chromatic mapping',()=>{assert.equal(noteName(60),'C4');assert.equal(noteName(61),'C#4');assert.equal(noteName(69),'A4');assert.equal(noteFrequency(69),440);assert.equal(noteFrequency(21),27.5);assert.ok(Math.abs(noteFrequency(108)-4186.009)<0.001);assert.ok(Math.abs(noteFrequency(70)/noteFrequency(69)-2**(1/12))<1e-12);});
+test('black keys fall between adjacent whites without black keys between E/F and B/C',()=>{const keys=makeKeyLayout();const lookup=new Map(keys.map(k=>[k.midi,k]));assert.equal(lookup.get(61).x,(lookup.get(60).x+lookup.get(62).x)/2);assert.equal(lookup.get(65).x-lookup.get(64).x,1);assert.equal(lookup.get(72).x-lookup.get(71).x,1);assert.equal(lookup.get(22).x,0.5);});

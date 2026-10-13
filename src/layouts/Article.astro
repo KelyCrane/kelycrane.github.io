@@ -1,0 +1,14 @@
+---
+import Base from './Base.astro';
+import { dateLabel, href } from '../site';
+interface Props { entry: { data: {title:string;description:string;date:Date;demo?:boolean;tags:string[];category?:string} }; headings: { depth:number;slug:string;text:string }[]; type?: 'blog'|'work'; }
+const { entry,headings,type='blog' }=Astro.props;
+---
+<Base title={entry.data.title} description={entry.data.description}>
+<div class="article-layout"><article data-pagefind-body>
+<header class="article-header"><div class="entry-meta"><span>{entry.data.category||'作品'}</span><time datetime={entry.data.date.toISOString()}>{dateLabel(entry.data.date)}</time>{entry.data.demo&&<span class="demo-badge">示例内容 · 非个人经历</span>}</div><h1 data-pagefind-meta="title">{entry.data.title}</h1><p>{entry.data.description}</p></header>
+<div class="prose"><slot/></div>
+<div class="chips" data-pagefind-ignore>{entry.data.tags.map(tag=><a class="chip" href={href(`tags/${encodeURIComponent(tag)}/`)}>#{tag}</a>)}</div>
+<a class="back-link" href={href(`${type}/`)}>← 返回{type==='blog'?'文章':'作品'}列表</a>
+</article><aside class="toc" aria-label="文章目录" data-pagefind-ignore><h2>本页目录</h2>{headings.length?<ul>{headings.filter(h=>h.depth===2||h.depth===3).map(h=><li style={h.depth===3?'padding-left:12px':''}><a href={`#${h.slug}`}>{h.text}</a></li>)}</ul>:<p>这篇内容暂无分节。</p>}</aside></div>
+</Base>

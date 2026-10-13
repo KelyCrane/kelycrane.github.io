@@ -1,0 +1,11 @@
+import { Buffer } from 'node:buffer';
+import { mkdir, writeFile, stat, realpath } from 'node:fs/promises';
+import { resolve } from 'node:path';
+const root=await realpath(process.cwd());
+if(process.platform==='win32' && root.toLowerCase().startsWith('c:'))throw new Error('音色必须下载至非 C 盘工作区');
+const target=resolve(root,'public/audio/piano');await mkdir(target,{recursive:true});
+if((await realpath(target)).toLowerCase().startsWith('c:'))throw new Error('音色目录链接指向 C 盘');
+const files=['A0'];for(let o=1;o<=6;o++)for(const n of ['C','Ds','Fs','A'])files.push(`${n}${o}`);files.push('C7');
+let bytes=0;const queue=[...files];
+await Promise.all(Array.from({length:4},async()=>{while(queue.length){const name=queue.shift();const path=resolve(target,`${name}.mp3`);try{const existing=await stat(path);if(existing.size>1000){bytes+=existing.size;continue;}}catch{}let error;for(let attempt=0;attempt<3;attempt++){try{const response=await fetch(`https://tonejs.github.io/audio/salamander/${name}.mp3`,{signal:AbortSignal.timeout(30000)});if(!response.ok)throw new Error(`${name}: HTTP ${response.status}`);const buffer=Buffer.from(await response.arrayBuffer());if(buffer.length<1000 || (!buffer.subarray(0,3).equals(Buffer.from('ID3')) && buffer[0]!==255))throw new Error(`${name}: 无效 MP3`);await writeFile(path,buffer);bytes+=buffer.length;error=undefined;break;}catch(e){error=e;}}if(error)throw error;}}));
+console.log(`${files.length} 个音色文件，${(bytes/1024/1024).toFixed(2)} MiB，保存至 ${target}`);
