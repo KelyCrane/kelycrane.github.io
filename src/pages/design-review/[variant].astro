@@ -1,0 +1,17 @@
+---
+import Base from '../../layouts/Base.astro';
+import PianoHero from '../../components/PianoHero.astro';
+import PianoMark from '../../components/PianoMark.astro';
+import { href } from '../../site';
+const variants=[{id:'reference',label:'D · 参考图方向',description:'深蓝虚空、流动雾气、细长蓝紫光痕与稀疏星点，缓慢向上升起。'},{id:'crystal',label:'A · 透明水晶滴',description:'少量清透水滴，轮廓柔和，抵达琴盖后留下轻微波纹。'},{id:'mercury',label:'B · 深色水银滴',description:'更沉静的深色液体，用反光勾勒形状，缓慢向上升起。'},{id:'silk',label:'C · 柔光细流',description:'四缕细流连起虚空与琴盖，配少量流动水滴。'}];
+export function getStaticPaths(){return (import.meta.env.DEV||import.meta.env.DESIGN_REVIEW==='1')?['reference','crystal','mercury','silk'].map(variant=>({params:{variant}})):[];}
+const selected=variants.find(v=>v.id===Astro.params.variant)!;
+---
+<Base title={selected.label}>
+<div class="review-banner"><strong>{selected.label}</strong><span>{selected.description}</span><nav aria-label="预览方案">{variants.map(v=><a href={href(`design-review/${v.id}/`)} aria-current={v.id===selected.id?'page':undefined}>{v.label.slice(0,1)}</a>)}<a href={href()}>主页</a></nav></div>
+<PianoHero previewStyle={selected.id} />
+<section class="review-icons" id="latest"><header><p class="eyebrow">钢琴图标候选</p><h2>选一个更喜欢的符号</h2><p>已采用图标 1“简洁琴键”。参考图方向的虚空效果已确认并应用到主页。</p></header><div class="icon-options">{[['keys','1 · 简洁琴键'],['grand','2 · 三角钢琴'],['note','3 · 琴键与音符']].map(([variant,label])=><article><div class="icon-header-preview"><PianoMark variant={variant as 'keys'|'grand'|'note'}/><span><b>斜方肌战神</b><small>KelyCrane</small></span></div><div class="icon-size-preview"><PianoMark variant={variant as 'keys'|'grand'|'note'}/></div><h3>{label}</h3></article>)}</div></section>
+</Base>
+<style>
+.review-banner{position:absolute;top:104px;left:5%;right:5%;z-index:9;display:flex;align-items:center;gap:18px;font-size:11px;color:#76608f;pointer-events:none}.review-banner strong{font-size:13px;white-space:nowrap}.review-banner nav{display:flex;gap:8px;margin-left:auto;pointer-events:auto}.review-banner nav a{padding:7px 10px;border:1px solid #c6b8cf;border-radius:20px;background:#f7f4f0c0}.review-banner nav a[aria-current=page]{background:#76608f;color:white}.review-icons{max-width:1100px;margin:auto;padding:70px 6%}.review-icons h2{font-family:var(--serif);font-weight:400;font-size:30px;margin:14px 0}.review-icons header>p:last-child{font-size:12px;color:var(--muted);margin-top:15px}.icon-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px;margin-top:35px}.icon-options article{padding:25px;border:1px solid var(--line);border-radius:8px;background:#ebe6e1}.icon-header-preview{display:flex;gap:10px;align-items:center}.icon-header-preview :global(.piano-mark){width:32px;height:32px;color:#594a6c}.icon-header-preview b{display:block;font-weight:550;font-size:14px;letter-spacing:.06em}.icon-header-preview small{display:block;font-size:9px;letter-spacing:.09em;color:var(--muted);margin-top:3px}.icon-size-preview{height:140px;display:grid;place-items:center}.icon-size-preview :global(.piano-mark){width:70px;height:70px;color:#594a6c}.icon-options h3{font-size:12px;font-weight:500;text-align:center;color:#76608f}@media(max-width:900px){.review-banner>span{display:none}}@media(max-width:600px){.review-banner{top:78px;font-size:10px}.review-banner strong{font-size:11px}.review-banner nav a{padding:4px 8px}.review-icons{padding:45px 8%}.icon-options{grid-template-columns:1fr}}
+</style>

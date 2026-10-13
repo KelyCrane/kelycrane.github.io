@@ -1,3 +1,3 @@
-export const site = { name: 'KelyCrane', description: '个人简介待填写。这里记录文章、作品与摄影。', author: 'KelyCrane', readyToPublish: false };
+export const site = { name: '斜方肌战神', englishName: 'KelyCrane', description: '这里记录文章、作品与摄影。', author: '斜方肌战神', readyToPublish: true };
 export const href = (path = '') => `${import.meta.env.BASE_URL.replace(/\/$/, '')}/${path.replace(/^\//, '')}`;
 export const dateLabel = (date: Date) => new Intl.DateTimeFormat('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', timeZone: 'Asia/Shanghai' }).format(date);

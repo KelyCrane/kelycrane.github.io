@@ -1,0 +1,9 @@
+---
+interface Props { variant?: 'keys'|'grand'|'note'; }
+const {variant='keys'}=Astro.props;
+---
+<svg class="piano-mark" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+{variant==='keys'&&<><rect x="4" y="8" width="28" height="22" rx="3" stroke="currentColor" stroke-width="1.7"/><path d="M11 21v9m7-9v9m7-9v9" stroke="currentColor" stroke-width="1.5"/><path d="M9 9h4v12H9zm7 0h4v12h-4zm7 0h4v12h-4z" fill="currentColor"/></>}
+{variant==='grand'&&<><path d="M6 24V12C6 6 11 3 17 3c8 0 15 4 15 9 0 4-5 5-7 8v4Z" fill="currentColor"/><rect x="6" y="24" width="23" height="5" rx="1" stroke="currentColor" stroke-width="1.5"/><path d="M10 25v3m5-3v3m5-3v3m5-3v3M9 29v4m17-4v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></>}
+{variant==='note'&&<><rect x="3" y="17" width="23" height="15" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M9 25v7m6-7v7m6-7v7" stroke="currentColor" stroke-width="1.4"/><path d="M7 18h4v8H7zm6 0h4v8h-4zm6 0h4v8h-4z" fill="currentColor"/><path d="M28 15V5l6-2v10" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><ellipse cx="26.3" cy="15" rx="3.2" ry="2.5" fill="currentColor"/><ellipse cx="32.3" cy="13" rx="3.2" ry="2.5" fill="currentColor"/></>}
+</svg>

@@ -2,6 +2,9 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { makePiano } from './model';
 import { makeVoid } from './void';
+import { makeReferenceVoid } from './void-reference';
+import { makeVoidPreview, type PreviewStyle } from './void-preview';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { makeKeyLayout } from './notes.mjs';
 import { PianoAudio } from './audio';
 
@@ -17,7 +20,7 @@ export function mountPiano(stage: HTMLElement) {
   renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFShadowMap;
   renderer.setClearColor(0xe9e3df,0);renderer.outputColorSpace=THREE.SRGBColorSpace;
   renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.2;
-  const canvas=renderer.domElement;canvas.setAttribute('aria-label','白色虚空钢琴；拖动空白处旋转，点击琴键弹奏');canvas.setAttribute('role','img');canvas.tabIndex=0;stage.append(canvas);
+  const canvas=renderer.domElement;canvas.setAttribute('aria-label','白色虚空钢琴；拖动空白处旋转，钢琴处滚轮缩放，点击琴键弹奏');canvas.setAttribute('role','img');canvas.tabIndex=0;stage.append(canvas);
   const scene=new THREE.Scene();scene.fog=new THREE.Fog(0xe9e3df,15,35);
   scene.add(new THREE.HemisphereLight(0xf9efff,0x676180,2.0));
   const sun=new THREE.DirectionalLight(0xffeee5,4.2);sun.position.set(-4,8,5);sun.castShadow=true;
@@ -25,9 +28,14 @@ export function mountPiano(stage: HTMLElement) {
   const fill=new THREE.DirectionalLight(0xaab9ff,1.4);fill.position.set(4,4,-4);scene.add(fill);
   const glow=new THREE.PointLight(0x6550db,1.2,5);glow.position.set(0,2.1,-0.5);scene.add(glow);
   const ground=new THREE.Mesh(new THREE.PlaneGeometry(200,200),new THREE.ShadowMaterial({opacity:0.15,color:0x514468}));ground.rotation.x=-Math.PI/2;ground.position.y=-0.01;ground.receiveShadow=true;scene.add(ground);
-  const piano=makePiano();scene.add(piano.group);const voidScene=makeVoid();scene.add(voidScene.group);
+  const piano=makePiano();scene.add(piano.group);
+  const style=stage.dataset.style||'reference';
+  const previewStyle=['crystal','mercury','silk'].includes(style)?style as PreviewStyle:undefined;
+  let environment:THREE.WebGLRenderTarget|undefined;
+  if(previewStyle){const generator=new THREE.PMREMGenerator(renderer);const room=new RoomEnvironment();environment=generator.fromScene(room,0.04);room.dispose();generator.dispose();}
+  const voidScene=style==='reference'?makeReferenceVoid():previewStyle?makeVoidPreview(previewStyle,environment?.texture):makeVoid();scene.add(voidScene.group);
   const camera=new THREE.PerspectiveCamera(36,1,0.1,80);
-  const controls=new OrbitControls(camera,canvas);controls.target.set(0,1.55,-0.35);controls.enableDamping=true;controls.dampingFactor=0.07;controls.enablePan=false;controls.enableZoom=false;controls.minPolarAngle=0.4;controls.maxPolarAngle=1.4;
+  const controls=new OrbitControls(camera,canvas);controls.target.set(0,1.55,-0.35);controls.enableDamping=true;controls.dampingFactor=0.07;controls.enablePan=false;controls.enableZoom=false;controls.minDistance=4.5;controls.maxDistance=21;controls.minPolarAngle=0.4;controls.maxPolarAngle=1.4;
   const home=new THREE.Vector3(7.7,6.6,9.2);const close=new THREE.Vector3(0,4.25,6.3);
   let cameraTween: { start: number; from: THREE.Vector3; to: THREE.Vector3; targetFrom: THREE.Vector3; targetTo: THREE.Vector3 } | undefined;
   const active=new Map<number,Set<string>>(); const pointerNotes=new Map<number,number>();
@@ -38,9 +46,27 @@ export function mountPiano(stage: HTMLElement) {
   function syncKeys() { document.querySelectorAll<HTMLButtonElement>('[data-piano-note]').forEach(button=>button.classList.toggle('pressed',active.has(Number(button.dataset.pianoNote)))); }
   function resetCamera() { cameraTween=undefined;camera.position.copy(home);controls.target.set(0,1.55,-0.35);if(stage.clientWidth<600)camera.position.multiplyScalar(1.25);controls.update(); }
   resetCamera();
+  if(style==='reference'&&window.location.pathname.includes('/design-review/')&&new URLSearchParams(window.location.search).get('view')==='detail'){
+    for(const mesh of piano.group.children){if(mesh.position.y>3.0)mesh.visible=false;}
+    camera.position.set(5.8,6.9,7.5);controls.target.set(0,1.4,-0.35);controls.update();
+  }
   function moveCamera(to:THREE.Vector3,target:THREE.Vector3) { cameraTween={start:performance.now(),from:camera.position.clone(),to:to.clone(),targetFrom:controls.target.clone(),targetTo:target.clone()}; }
   const raycaster=new THREE.Raycaster();const mouse=new THREE.Vector2();
   function pick(event:PointerEvent) { const rect=canvas.getBoundingClientRect();mouse.set((event.clientX-rect.left)/rect.width*2-1,-(event.clientY-rect.top)/rect.height*2+1);raycaster.setFromCamera(mouse,camera);return raycaster.intersectObjects(piano.hitKeys,false)[0]?.object.userData.midi as number|undefined; }
+  canvas.addEventListener('wheel',event=>{
+    if(event.ctrlKey||event.metaKey)return;
+    const rect=canvas.getBoundingClientRect();
+    mouse.set((event.clientX-rect.left)/rect.width*2-1,-(event.clientY-rect.top)/rect.height*2+1);
+    raycaster.setFromCamera(mouse,camera);
+    const hit=raycaster.intersectObjects([piano.group,voidScene.group],true)[0];
+    if(!hit)return;
+    event.preventDefault();event.stopImmediatePropagation();cameraTween=undefined;
+    const units=event.deltaMode===1?16:event.deltaMode===2?rect.height:1;
+    const delta=Math.max(-240,Math.min(240,event.deltaY*units));
+    const offset=camera.position.clone().sub(controls.target);
+    const distance=THREE.MathUtils.clamp(offset.length()*Math.exp(delta*0.0018),controls.minDistance,controls.maxDistance);
+    camera.position.copy(controls.target).add(offset.setLength(distance));controls.update();
+  },{capture:true,passive:false});
   canvas.addEventListener('pointerdown',event=>{
     if(event.button!==0)return;
     const midi=pick(event);
@@ -76,7 +102,7 @@ export function mountPiano(stage: HTMLElement) {
   canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();releaseAll();canvas.style.visibility='hidden';stage.classList.remove('scene-ready');loading.hidden=false;loading.textContent='三维画面已暂停，可使用“靠近键盘”继续弹奏。';});
   canvas.addEventListener('webglcontextrestored',()=>{canvas.style.visibility='';stage.classList.add('scene-ready');loading.hidden=true;resume();});
   window.addEventListener('pageshow',()=>resume());
-  window.addEventListener('pagehide',(event)=>{if(event.persisted){releaseAll();cancelAnimationFrame(frame);frame=0;return;}disposed=true;cancelAnimationFrame(frame);resize.disconnect();observer.disconnect();controls.dispose();audio.dispose();scene.traverse(object=>{if(object instanceof THREE.Mesh){object.geometry.dispose();const materials=Array.isArray(object.material)?object.material:[object.material];materials.forEach(material=>material.dispose());}});renderer.dispose();});
+  window.addEventListener('pagehide',(event)=>{if(event.persisted){releaseAll();cancelAnimationFrame(frame);frame=0;return;}disposed=true;cancelAnimationFrame(frame);resize.disconnect();observer.disconnect();controls.dispose();audio.dispose();scene.traverse(object=>{if(object instanceof THREE.Mesh){object.geometry.dispose();const materials=Array.isArray(object.material)?object.material:[object.material];materials.forEach(material=>material.dispose());}});environment?.dispose();renderer.dispose();});
   stage.classList.add('scene-ready');loading.hidden=true;resume();
   if(import.meta.env.DEV){(stage as HTMLElement & { pianoDebug?:unknown }).pianoDebug={audio,noteOn,noteOff,releaseAll,active,camera,ready:()=>audio.ready(),keyScreen:(midi:number)=>{const key=piano.hitKeys.find(k=>k.userData.midi===midi)!;const position=key.getWorldPosition(new THREE.Vector3()).project(camera);const rect=canvas.getBoundingClientRect();return{x:rect.left+(position.x+1)*rect.width/2,y:rect.top+(1-position.y)*rect.height/2};}};}
 

@@ -1,15 +1,17 @@
 ---
 import { href } from '../site';
+interface Props { previewStyle?: string; }
+const {previewStyle='reference'}=Astro.props;
 ---
 <section class="hero" aria-label="虚空钢琴互动场景" data-pagefind-ignore>
-  <div class="piano-stage" id="piano-stage" data-base={import.meta.env.BASE_URL}>
+  <div class="piano-stage" id="piano-stage" data-base={import.meta.env.BASE_URL} data-style={previewStyle}>
     <img class="piano-fallback" src={href('images/piano-cover.svg')} alt="白色三角钢琴，悬浮琴盖与向上升起的蓝紫色液滴" width="1200" height="900" />
     <div class="scene-loading" id="scene-loading">正在唤醒钢琴<span></span></div>
   </div>
-  <div class="hero-copy"><p class="eyebrow"><span></span>文字 / 影像 / 声音</p><h1>让声音，<br/>落向<span>虚空。</span></h1><p class="hero-description">在这里，写下所想，留住所见。<br/>也给偶然路过的你，留一架可以弹的钢琴。</p><a class="text-link" href="#latest">翻开我的记录 <span>↘</span></a><span class="identity-placeholder">个人简介待填写</span></div>
+  <div class="hero-copy"><p class="eyebrow"><span></span>文字 / 影像 / 声音</p><h1>让声音，<br/>落向<span>虚空。</span></h1><p class="hero-description">在这里，写下所想，留住所见。<br/>也给偶然路过的你，留一架可以弹的钢琴。</p><a class="text-link" href="#latest">翻开我的记录 <span>↘</span></a><span class="identity-placeholder">斜方肌战神 · KelyCrane</span></div>
   <div class="scene-caption"><span class="caption-line"></span><p>VOID PIANO <span>01 / 互动习作</span></p></div>
   <div class="piano-controls" id="piano-controls">
-    <p id="piano-status" role="status" aria-live="polite">拖动空白处旋转 · 点击琴键弹奏</p>
+    <p id="piano-status" role="status" aria-live="polite">拖动旋转 · 钢琴处滚轮缩放 · 点击琴键弹奏</p>
     <div class="control-row"><button id="piano-enable" type="button">♪ <span>音色</span></button><button id="piano-home" type="button">↺ <span>初始视角</span></button><button id="piano-close" type="button">⌕ <span>靠近键盘</span></button><button id="piano-mute" type="button" aria-pressed="false">♫ <span>静音</span></button><label class="volume-label">音量<input id="piano-volume" type="range" min="0" max="100" value="65" aria-label="钢琴音量" /></label></div>
   </div>
   <a class="scroll-hint" href="#latest" aria-label="向下浏览文章"><span>向下探索</span><span>↓</span></a>
