@@ -84,9 +84,10 @@ npm.cmd run preview
 
 `public/audio/piano/` 含 26 个必要 MP3 采样，总计约 1.84 MiB，未下载完整音源库。采样由 Alexander Holm 创作，使用 CC BY 3.0，见站内素材致谢及该目录的 `CREDITS.txt`。`scripts/fetch-samples.mjs` 可补齐缺失采样；其所有输出保存在项目目录中。
 
-`PianoAudio` 与场景驱动统一按 MIDI 音高、力度和来源标识触发/释放音符，并接受音频时间参数；取消交互会释放所有声音。自动演奏与手动弹奏复用同一组琴键与采样，分别管理可取消的音符声部。首页已内置 10 首 MIDI 自动演奏曲目，支持播放/暂停、停止、进度跳转和单曲循环。没有 MP3 转谱、评论或统计。
+`PianoAudio` 与场景驱动统一按 MIDI 音高、力度和来源标识触发/释放音符，并接受音频时间参数；取消交互会释放所有声音。自动演奏与手动弹奏复用同一组琴键与采样，分别管理可取消的音符声部。首页曲库按清单分组，曲目数与默认曲目由 `src/data/music.json` 读取，支持播放/暂停、停止、进度跳转和单曲循环。没有 MP3 转谱、评论或统计。
 ## 内置钢琴曲目
 
 点击首页“曲目”展开播放器。可以在自动演奏时一起弹奏；下滑首页继续播放，切到后台自动暂停，返回后手动继续。音符和踏板以各曲原始 MIDI 为准。
 
 曲库清单位于 src/data/music.json，原始 MIDI 与转换数据位于 public/music。新增或替换乐谱后运行 npm run import:music，再运行检查、测试和构建。制谱者与各版本许可见网站素材致谢及 public/music/CREDITS.json。浏览器不需要 MIDI 解析依赖，也不从外部音乐 CDN 获取资源。
+曲库扩充的发布目标保存在 `src/data/music-release.json`。新曲缺失时，`scripts/preflight-publish.mjs` 阻止公开发布；本地预览只展示已取得并严格转换的曲目，不加入空选项。每份原谱保持不变，来源、版本、SHA-256、演奏轨道选择和转换说明在 `public/music/CREDITS.json`，可用 `npm run import:music` 重建。所有受控下载、缓存、测试报告均在本项目 D 盘 `.storage` 目录。

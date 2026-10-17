@@ -50,7 +50,7 @@ export class PianoAudio {
     if(this.disposed||!Number.isInteger(midi)||midi<21||midi>108||!Number.isFinite(velocity))return;
     const key=`${midi}:${source}`,existing=this.voices.get(key);
     if(existing&&(existing.offAt===undefined||existing.offAt>this.now()))return;
-    const voice:Voice={midi,source,time,offset:Math.max(0,offset),velocity:Math.min(1,Math.max(0.01,velocity))};this.voices.set(key,voice);
+    const voice:Voice={midi,source,time,offset:Math.max(0,offset),velocity:Math.min(1,Math.max(0,velocity))};this.voices.set(key,voice);
     const start=()=>{
       if(this.disposed||this.voices.get(key)!==voice||(voice.offAt!==undefined&&voice.offAt<=this.now())){if(this.voices.get(key)===voice)this.voices.delete(key);return;}
       // Same nearest-sample pitch shifting as Tone.Sampler, with independent ownership per strike.

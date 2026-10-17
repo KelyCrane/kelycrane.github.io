@@ -1,14 +1,17 @@
 ---
 import music from '../data/music.json';
+import { defaultTrack,groupTracks } from '../piano/catalog.mjs';
+const initial=defaultTrack(music);
+const groups=groupTracks(music);
 import { href } from '../site';
 const time=(seconds:number)=>`${Math.floor(seconds/60)}:${String(Math.floor(seconds%60)).padStart(2,'0')}`;
 ---
 <section class="music-panel" id="music-panel" aria-label="钢琴曲目播放器" hidden>
   <header><div><p class="eyebrow">PIANO / 自动演奏</p><h2>让钢琴，弹一会儿。</h2></div><button type="button" id="music-close" aria-label="收起曲目播放器">×</button></header>
-  <label for="music-track" class="music-label">选择曲目 <span>10 首 · 可一起弹奏</span></label>
-  <select id="music-track">{music.map((track,index)=><option value={track.id}>{String(index+1).padStart(2,'0')} · {track.title}</option>)}</select>
-  <p class="music-composer" id="music-composer">{music[0].composer}</p>
-  <div class="music-timeline"><input id="music-progress" type="range" min="0" max={music[0].duration} step="0.1" value="0" aria-label="播放进度" aria-valuetext={`0:00 / ${time(music[0].duration)}`} /><div><span id="music-elapsed">0:00</span><span id="music-duration">{time(music[0].duration)}</span></div></div>
+  <label for="music-track" class="music-label">选择曲目 <span>{music.length} 首 · 可一起弹奏</span></label>
+  <select id="music-track">{groups.map(group=><optgroup label={`${group.label} · ${group.tracks.length} 首`}>{group.tracks.map((track,index)=><option value={track.id} selected={track.id===initial.id}>{String(index+1).padStart(2,'0')} · {track.title}</option>)}</optgroup>)}</select>
+  <p class="music-composer" id="music-composer">{initial.composer}</p>
+  <div class="music-timeline"><input id="music-progress" type="range" min="0" max={initial.duration} step="0.1" value="0" aria-label="播放进度" aria-valuetext={`0:00 / ${time(initial.duration)}`} /><div><span id="music-elapsed">0:00</span><span id="music-duration">{time(initial.duration)}</span></div></div>
   <div class="music-actions"><button id="music-play" type="button" class="music-play" aria-label="播放所选曲目">▶ <span>播放</span></button><button id="music-stop" type="button">■ <span>停止</span></button><button id="music-loop" type="button" aria-pressed="false">↻ <span>单曲循环</span></button></div>
   <p id="music-status" class="music-status" role="status" aria-live="polite">点击播放，观看钢琴自动演奏。</p>
   <footer><span>下滑继续 · 切到后台暂停</span><a href={href('credits/#music')}>曲目来源与许可 ↗</a></footer>

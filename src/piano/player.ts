@@ -1,4 +1,5 @@
 import music from '../data/music.json';
+import { defaultTrack } from './catalog.mjs';
 import { PlaybackTransport } from './transport.mjs';
 import { validateScore } from './score.mjs';
 import type { PianoDriver } from './driver';
@@ -12,7 +13,7 @@ export function mountMusicPlayer(driver:PianoDriver,base:string){
   const composer=document.querySelector<HTMLElement>('#music-composer')!;
   const elapsed=document.querySelector<HTMLElement>('#music-elapsed')!;
   const duration=document.querySelector<HTMLElement>('#music-duration')!;
-  let selected=music[0],pending=false,error='',revision=0,disposed=false,scrubbing=false,scrubPlaying=false;
+  let selected=defaultTrack(music),pending=false,error='',revision=0,disposed=false,scrubbing=false,scrubPlaying=false;
   let abort:AbortController|undefined;
   const cache=new Map<string,ReturnType<typeof validateScore>>();
   const format=(seconds:number)=>`${Math.floor(seconds/60)}:${String(Math.floor(seconds%60)).padStart(2,'0')}`;
