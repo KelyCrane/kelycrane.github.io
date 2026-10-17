@@ -1,5 +1,6 @@
 ---
 import { href } from '../site';
+import MusicPlayer from './MusicPlayer.astro';
 interface Props { previewStyle?: string; }
 const {previewStyle='reference'}=Astro.props;
 ---
@@ -12,10 +13,11 @@ const {previewStyle='reference'}=Astro.props;
   <div class="scene-caption"><span class="caption-line"></span><p>VOID PIANO <span>01 / 互动习作</span></p></div>
   <div class="piano-controls" id="piano-controls">
     <p id="piano-status" role="status" aria-live="polite">拖动旋转 · 钢琴处滚轮缩放 · 点击琴键弹奏</p>
-    <div class="control-row"><button id="piano-enable" type="button">♪ <span>音色</span></button><button id="piano-home" type="button">↺ <span>初始视角</span></button><button id="piano-close" type="button">⌕ <span>靠近键盘</span></button><button id="piano-mute" type="button" aria-pressed="false">♫ <span>静音</span></button><label class="volume-label">音量<input id="piano-volume" type="range" min="0" max="100" value="65" aria-label="钢琴音量" /></label></div>
+    <div class="control-row"><button id="music-toggle" type="button" aria-expanded="false" aria-controls="music-panel">♬ <span>曲目</span></button><button id="piano-enable" type="button">♪ <span>音色</span></button><button id="piano-home" type="button">↺ <span>初始视角</span></button><button id="piano-close" type="button">⌕ <span>靠近键盘</span></button><button id="piano-mute" type="button" aria-pressed="false">♫ <span>静音</span></button><label class="volume-label">音量<input id="piano-volume" type="range" min="0" max="100" value="65" aria-label="钢琴音量" /></label></div>
   </div>
   <a class="scroll-hint" href="#latest" aria-label="向下浏览文章"><span>向下探索</span><span>↓</span></a>
   <div class="keyboard-panel" id="keyboard-panel" hidden><div class="keyboard-panel-head"><p>触摸或点击琴键弹奏 <span>完整 88 键 · 横向滚动</span></p><button id="keyboard-close" type="button" aria-label="关闭放大键盘">×</button></div><div class="keyboard-scroll"><div id="flat-keyboard" role="group" aria-label="可弹奏的完整钢琴键盘"></div></div></div>
+  <MusicPlayer />
   <noscript><p class="noscript-note">启用 JavaScript 后可体验钢琴；文章、作品和相册仍可正常浏览。</p></noscript>
 </section>
 <script>

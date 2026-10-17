@@ -8,7 +8,8 @@
     "build": "astro build && pagefind --site dist",
     "preview": "astro preview --host 127.0.0.1",
     "check": "astro check",
-    "test": "node --test tests/*.test.mjs"
+    "test": "node --test tests/*.test.mjs",
+    "import:music": "node scripts/import-music.mjs"
   },
   "dependencies": {
     "astro": "7.3.8",
@@ -17,6 +18,7 @@
   },
   "devDependencies": {
     "@astrojs/check": "0.9.10",
+    "@tonejs/midi": "2.0.28",
     "@types/three": "0.186.0",
     "pagefind": "1.5.2",
     "playwright": "^1.64.0",

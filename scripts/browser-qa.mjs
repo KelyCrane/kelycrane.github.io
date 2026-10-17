@@ -14,7 +14,7 @@ await page.goto('http://127.0.0.1:4321/');await page.waitForSelector('.scene-rea
 await check('88 accessible keys',async()=>assert.equal(await page.locator('[data-piano-note]').count(),88));
 await page.mouse.click(1100,150);
 await page.evaluate(async()=>{await document.querySelector('#piano-stage').pianoDebug.ready();});
-await check('self-hosted samples loaded',async()=>assert.equal(await page.evaluate(()=>document.querySelector('#piano-stage').pianoDebug.audio.sampler.loaded),true));
+await check('self-hosted samples loaded',async()=>assert.equal(await page.evaluate(()=>document.querySelector('#piano-stage').pianoDebug.audio.loaded),true));
 await check('real audio waveform generated',async()=>{
   await page.evaluate(()=>{const driver=document.querySelector('#piano-stage').pianoDebug;const context=driver.audio.gain.context.rawContext;const analyser=context.createAnalyser();analyser.fftSize=2048;driver.audio.gain.connect(analyser);window.qaAnalyser=analyser;driver.noteOn(60,0.8);});
   await page.waitForTimeout(180);const rms=await page.evaluate(()=>{const values=new Float32Array(2048);window.qaAnalyser.getFloatTimeDomainData(values);return Math.sqrt(values.reduce((sum,v)=>sum+v*v,0)/values.length);});assert.ok(rms>0.0001,`expected nonzero audio, RMS=${rms}`);report.performance.audioRms=rms;await page.evaluate(()=>document.querySelector('#piano-stage').pianoDebug.releaseAll());

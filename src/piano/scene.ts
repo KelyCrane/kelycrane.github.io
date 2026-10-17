@@ -6,13 +6,19 @@ import { makeReferenceVoid } from './void-reference';
 import { makeVoidPreview, type PreviewStyle } from './void-preview';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { makeKeyLayout } from './notes.mjs';
-import { PianoAudio } from './audio';
+import { createPianoDriver } from './driver';
+import { mountMusicPlayer } from './player';
 
 export function mountPiano(stage: HTMLElement) {
   const status = document.querySelector<HTMLElement>('#piano-status')!;
   const loading = document.querySelector<HTMLElement>('#scene-loading')!;
   const setStatus = (message:string) => { status.textContent=message; };
   const base = stage.dataset.base || '/';
+  const driver=createPianoDriver(base,setStatus);
+  const {audio,active,noteOn,noteOff,releaseAll}=driver;
+  const player=mountMusicPlayer(driver,base);
+  const pointerNotes=new Map<number,number>();
+  function releaseManual(){pointerNotes.clear();driver.releaseManual();}
   let renderer: THREE.WebGLRenderer;
   try { renderer = new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'}); }
   catch { loading.textContent='当前设备无法显示三维场景，点击“靠近键盘”仍可弹奏。'; mountKeyboardOnly(); return; }
@@ -38,12 +44,6 @@ export function mountPiano(stage: HTMLElement) {
   const controls=new OrbitControls(camera,canvas);controls.target.set(0,1.55,-0.35);controls.enableDamping=true;controls.dampingFactor=0.07;controls.enablePan=false;controls.enableZoom=false;controls.minDistance=4.5;controls.maxDistance=21;controls.minPolarAngle=0.4;controls.maxPolarAngle=1.4;
   const home=new THREE.Vector3(7.7,6.6,9.2);const close=new THREE.Vector3(0,4.25,6.3);
   let cameraTween: { start: number; from: THREE.Vector3; to: THREE.Vector3; targetFrom: THREE.Vector3; targetTo: THREE.Vector3 } | undefined;
-  const active=new Map<number,Set<string>>(); const pointerNotes=new Map<number,number>();
-  const audio=new PianoAudio(base,setStatus);
-  function noteOn(midi:number,velocity=0.72,time?:number,source='manual') { audio.scheduleVisual(()=>{let sources=active.get(midi);if(!sources)active.set(midi,sources=new Set());sources.add(source);syncKeys();},time);audio.noteOn(midi,velocity,time,source); }
-  function noteOff(midi:number,time?:number,source='manual') { audio.scheduleVisual(()=>{const sources=active.get(midi);sources?.delete(source);if(!sources?.size)active.delete(midi);syncKeys();},time);audio.noteOff(midi,time,source); }
-  function releaseAll() { active.clear();pointerNotes.clear();audio.releaseAll();syncKeys(); }
-  function syncKeys() { document.querySelectorAll<HTMLButtonElement>('[data-piano-note]').forEach(button=>button.classList.toggle('pressed',active.has(Number(button.dataset.pianoNote)))); }
   function resetCamera() { cameraTween=undefined;camera.position.copy(home);controls.target.set(0,1.55,-0.35);if(stage.clientWidth<600)camera.position.multiplyScalar(1.25);controls.update(); }
   resetCamera();
   if(style==='reference'&&window.location.pathname.includes('/design-review/')&&new URLSearchParams(window.location.search).get('view')==='detail'){
@@ -80,13 +80,13 @@ export function mountPiano(stage: HTMLElement) {
   const panel=document.querySelector<HTMLElement>('#keyboard-panel')!;
   const closeButton=document.querySelector<HTMLButtonElement>('#piano-close')!;
   closeButton.addEventListener('click',()=>{moveCamera(close,new THREE.Vector3(0,1.4,1.0));panel.hidden=false;scrollKeyboard();});
-  document.querySelector('#piano-home')?.addEventListener('click',()=>{releaseAll();panel.hidden=true;moveCamera(stage.clientWidth<600?home.clone().multiplyScalar(1.25):home,new THREE.Vector3(0,1.55,-0.35));});
-  document.querySelector('#keyboard-close')?.addEventListener('click',()=>{releaseAll();panel.hidden=true;});
+  document.querySelector('#piano-home')?.addEventListener('click',()=>{releaseManual();panel.hidden=true;moveCamera(stage.clientWidth<600?home.clone().multiplyScalar(1.25):home,new THREE.Vector3(0,1.55,-0.35));});
+  document.querySelector('#keyboard-close')?.addEventListener('click',()=>{releaseManual();panel.hidden=true;});
   document.querySelector('#piano-enable')?.addEventListener('click',()=>{void audio.ready().catch(()=>{});});
   const muteButton=document.querySelector<HTMLButtonElement>('#piano-mute')!;
   muteButton.addEventListener('click',()=>{const muted=muteButton.getAttribute('aria-pressed')!=='true';muteButton.setAttribute('aria-pressed',String(muted));muteButton.querySelector('span')!.textContent=muted?'取消静音':'静音';audio.setMuted(muted);});
   document.querySelector<HTMLInputElement>('#piano-volume')?.addEventListener('input',event=>audio.setVolume(Number((event.target as HTMLInputElement).value)/100));
-  populateKeyboard(noteOn,noteOff,releaseAll);
+  populateKeyboard(noteOn,noteOff,releaseManual);
   const resize = new ResizeObserver(()=>{const width=stage.clientWidth,height=stage.clientHeight;renderer.setSize(width,height);camera.aspect=width/height;camera.updateProjectionMatrix();});resize.observe(stage);
   let visible=true,disposed=false,frame=0;const started=performance.now();let previous=started;
   function render(now:number) {
@@ -97,27 +97,28 @@ export function mountPiano(stage: HTMLElement) {
     voidScene.update((now-started)/1000,active.size);controls.update();renderer.render(scene,camera);frame=requestAnimationFrame(render);
   }
   function resume(){if(!frame&&!disposed&&visible&&!document.hidden){previous=performance.now();frame=requestAnimationFrame(render);}}
-  const observer=new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;if(!visible)releaseAll();resume();},{threshold:0});observer.observe(stage);
-  document.addEventListener('visibilitychange',()=>{if(document.hidden)releaseAll();else resume();});window.addEventListener('blur',releaseAll);
-  canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();releaseAll();canvas.style.visibility='hidden';stage.classList.remove('scene-ready');loading.hidden=false;loading.textContent='三维画面已暂停，可使用“靠近键盘”继续弹奏。';});
+  const observer=new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;if(!visible)releaseManual();resume();},{threshold:0});observer.observe(stage);
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)releaseManual();else resume();});window.addEventListener('blur',releaseManual);
+  canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();releaseManual();canvas.style.visibility='hidden';stage.classList.remove('scene-ready');loading.hidden=false;loading.textContent='三维画面已暂停，可使用“靠近键盘”继续弹奏。';});
   canvas.addEventListener('webglcontextrestored',()=>{canvas.style.visibility='';stage.classList.add('scene-ready');loading.hidden=true;resume();});
   window.addEventListener('pageshow',()=>resume());
-  window.addEventListener('pagehide',(event)=>{if(event.persisted){releaseAll();cancelAnimationFrame(frame);frame=0;return;}disposed=true;cancelAnimationFrame(frame);resize.disconnect();observer.disconnect();controls.dispose();audio.dispose();scene.traverse(object=>{if(object instanceof THREE.Mesh){object.geometry.dispose();const materials=Array.isArray(object.material)?object.material:[object.material];materials.forEach(material=>material.dispose());}});environment?.dispose();renderer.dispose();});
+  window.addEventListener('pagehide',(event)=>{if(event.persisted){releaseAll();cancelAnimationFrame(frame);frame=0;return;}disposed=true;cancelAnimationFrame(frame);resize.disconnect();observer.disconnect();controls.dispose();driver.dispose();scene.traverse(object=>{if(object instanceof THREE.Mesh){object.geometry.dispose();const materials=Array.isArray(object.material)?object.material:[object.material];materials.forEach(material=>material.dispose());}});environment?.dispose();renderer.dispose();});
   stage.classList.add('scene-ready');loading.hidden=true;resume();
-  if(import.meta.env.DEV){(stage as HTMLElement & { pianoDebug?:unknown }).pianoDebug={audio,noteOn,noteOff,releaseAll,active,camera,ready:()=>audio.ready(),keyScreen:(midi:number)=>{const key=piano.hitKeys.find(k=>k.userData.midi===midi)!;const position=key.getWorldPosition(new THREE.Vector3()).project(camera);const rect=canvas.getBoundingClientRect();return{x:rect.left+(position.x+1)*rect.width/2,y:rect.top+(1-position.y)*rect.height/2};}};}
+  if(import.meta.env.DEV){(stage as HTMLElement & { pianoDebug?:unknown }).pianoDebug={audio,noteOn,noteOff,releaseAll,releaseManual,active,camera,player,ready:()=>audio.ready(),keyScreen:(midi:number)=>{const key=piano.hitKeys.find(k=>k.userData.midi===midi)!;const position=key.getWorldPosition(new THREE.Vector3()).project(camera);const rect=canvas.getBoundingClientRect();return{x:rect.left+(position.x+1)*rect.width/2,y:rect.top+(1-position.y)*rect.height/2};}};}
 
   return { noteOn,noteOff,releaseAll,ready:()=>audio.ready(),now:()=>audio.now() };
 
   function mountKeyboardOnly() {
-    const fallbackAudio=new PianoAudio(base,setStatus);const panel=document.querySelector<HTMLElement>('#keyboard-panel')!;
-    const release=()=>fallbackAudio.releaseAll();
-    populateKeyboard((m,v,t,s)=>fallbackAudio.noteOn(m,v,t,s),(m,t,s)=>fallbackAudio.noteOff(m,t,s),release);
+    const fallbackAudio=audio;const panel=document.querySelector<HTMLElement>('#keyboard-panel')!;
+    const release=releaseManual;
+    populateKeyboard(noteOn,noteOff,release);
+    if(import.meta.env.DEV){(stage as HTMLElement & {pianoDebug?:unknown}).pianoDebug={audio,active,noteOn,noteOff,releaseAll,player,ready:()=>audio.ready()};}
     document.querySelector('#piano-close')?.addEventListener('click',()=>{panel.hidden=false;scrollKeyboard();});document.querySelector('#keyboard-close')?.addEventListener('click',()=>{release();panel.hidden=true;});
     document.querySelector('#piano-home')?.addEventListener('click',()=>{release();panel.hidden=true;});
     document.querySelector<HTMLInputElement>('#piano-volume')?.addEventListener('input',event=>fallbackAudio.setVolume(Number((event.target as HTMLInputElement).value)/100));
     document.querySelector('#piano-mute')?.addEventListener('click',event=>{const button=event.currentTarget as HTMLButtonElement;const muted=button.getAttribute('aria-pressed')!=='true';button.setAttribute('aria-pressed',String(muted));button.querySelector('span')!.textContent=muted?'取消静音':'静音';fallbackAudio.setMuted(muted);});
     document.querySelector('#piano-enable')?.addEventListener('click',()=>{void fallbackAudio.ready().catch(()=>{});});
-    window.addEventListener('blur',release);document.addEventListener('visibilitychange',()=>{if(document.hidden)release();});window.addEventListener('pagehide',event=>{release();if(!event.persisted)fallbackAudio.dispose();});
+    window.addEventListener('blur',release);document.addEventListener('visibilitychange',()=>{if(document.hidden)release();});window.addEventListener('pagehide',event=>{release();if(!event.persisted)driver.dispose();});
   }
 }
 function scrollKeyboard(){requestAnimationFrame(()=>{const scroll=document.querySelector<HTMLElement>('.keyboard-scroll')!;scroll.scrollLeft=(scroll.scrollWidth-scroll.clientWidth)*0.48;});}
@@ -127,10 +128,10 @@ function populateKeyboard(on:Attack,off:Release,releaseAll:()=>void){
   const keyboard=document.querySelector<HTMLElement>('#flat-keyboard')!;
   for(const spec of makeKeyLayout()){
     const key=document.createElement('button');key.type='button';key.className=spec.black?'flat-key black':'flat-key white';key.dataset.pianoNote=String(spec.midi);key.style.left=`${spec.x*30}px`;key.setAttribute('aria-label',`弹奏 ${spec.name}`);key.innerHTML=spec.midi%12===0?`<span>${spec.name}</span>`:'';
-    key.addEventListener('pointerdown',event=>{if(event.button!==0)return;key.setPointerCapture(event.pointerId);key.classList.add('pressed');on(spec.midi,0.72,undefined,`flat:${event.pointerId}`);});
-    const up=(event:PointerEvent)=>{off(spec.midi,undefined,`flat:${event.pointerId}`);key.classList.remove('pressed');};key.addEventListener('pointerup',up);key.addEventListener('pointercancel',up);key.addEventListener('lostpointercapture',up);
-    key.addEventListener('keydown',event=>{if((event.code==='Space'||event.code==='Enter')&&!event.repeat){event.preventDefault();key.classList.add('pressed');on(spec.midi,0.72,undefined,`accessible:${spec.midi}`);}});key.addEventListener('keyup',event=>{if(event.code==='Space'||event.code==='Enter'){event.preventDefault();off(spec.midi,undefined,`accessible:${spec.midi}`);key.classList.remove('pressed');}});key.addEventListener('blur',()=>{off(spec.midi,undefined,`accessible:${spec.midi}`);key.classList.remove('pressed');});
+    key.addEventListener('pointerdown',event=>{if(event.button!==0)return;key.setPointerCapture(event.pointerId);on(spec.midi,0.72,undefined,`flat:${event.pointerId}`);});
+    const up=(event:PointerEvent)=>{off(spec.midi,undefined,`flat:${event.pointerId}`);};key.addEventListener('pointerup',up);key.addEventListener('pointercancel',up);key.addEventListener('lostpointercapture',up);
+    key.addEventListener('keydown',event=>{if((event.code==='Space'||event.code==='Enter')&&!event.repeat){event.preventDefault();on(spec.midi,0.72,undefined,`accessible:${spec.midi}`);}});key.addEventListener('keyup',event=>{if(event.code==='Space'||event.code==='Enter'){event.preventDefault();off(spec.midi,undefined,`accessible:${spec.midi}`);}});key.addEventListener('blur',()=>{off(spec.midi,undefined,`accessible:${spec.midi}`);});
     keyboard.append(key);
   }
-  window.addEventListener('blur',()=>{releaseAll();keyboard.querySelectorAll('.pressed').forEach(key=>key.classList.remove('pressed'));});
+  window.addEventListener('blur',()=>{releaseAll();});
 }
