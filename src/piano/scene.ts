@@ -8,6 +8,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { makeKeyLayout } from './notes.mjs';
 import { createPianoDriver } from './driver';
 import { mountMusicPlayer } from './player';
+import { mountSceneInteraction } from './interaction';
 
 export function mountPiano(stage: HTMLElement) {
   const status = document.querySelector<HTMLElement>('#piano-status')!;
@@ -17,8 +18,8 @@ export function mountPiano(stage: HTMLElement) {
   const driver=createPianoDriver(base,setStatus);
   const {audio,active,noteOn,noteOff,releaseAll}=driver;
   const player=mountMusicPlayer(driver,base);
-  const pointerNotes=new Map<number,number>();
-  function releaseManual(){pointerNotes.clear();driver.releaseManual();}
+  let cancelInteraction=()=>{};
+  function releaseManual(){cancelInteraction();driver.releaseManual();}
   let renderer: THREE.WebGLRenderer;
   try { renderer = new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'}); }
   catch { loading.textContent='当前设备无法显示三维场景，点击“靠近键盘”仍可弹奏。'; mountKeyboardOnly(); return; }
@@ -26,7 +27,7 @@ export function mountPiano(stage: HTMLElement) {
   renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFShadowMap;
   renderer.setClearColor(0xe9e3df,0);renderer.outputColorSpace=THREE.SRGBColorSpace;
   renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.2;
-  const canvas=renderer.domElement;canvas.setAttribute('aria-label','白色虚空钢琴；拖动空白处旋转，钢琴处滚轮缩放，点击琴键弹奏');canvas.setAttribute('role','img');canvas.tabIndex=0;stage.append(canvas);
+  const canvas=renderer.domElement;canvas.setAttribute('aria-label','白色虚空钢琴；非琴键处单指拖动旋转，双指缩放和平移；电脑右键或 Shift 加左键拖动平移，钢琴处滚轮缩放；琴键支持多指弹奏');canvas.setAttribute('aria-describedby','piano-gesture-help');canvas.setAttribute('role','img');canvas.tabIndex=0;stage.append(canvas);
   const scene=new THREE.Scene();scene.fog=new THREE.Fog(0xe9e3df,15,35);
   scene.add(new THREE.HemisphereLight(0xf9efff,0x676180,2.0));
   const sun=new THREE.DirectionalLight(0xffeee5,4.2);sun.position.set(-4,8,5);sun.castShadow=true;
@@ -41,7 +42,7 @@ export function mountPiano(stage: HTMLElement) {
   if(previewStyle){const generator=new THREE.PMREMGenerator(renderer);const room=new RoomEnvironment();environment=generator.fromScene(room,0.04);room.dispose();generator.dispose();}
   const voidScene=style==='reference'?makeReferenceVoid():previewStyle?makeVoidPreview(previewStyle,environment?.texture):makeVoid();scene.add(voidScene.group);
   const camera=new THREE.PerspectiveCamera(36,1,0.1,80);
-  const controls=new OrbitControls(camera,canvas);controls.target.set(0,1.55,-0.35);controls.enableDamping=true;controls.dampingFactor=0.07;controls.enablePan=false;controls.enableZoom=false;controls.minDistance=4.5;controls.maxDistance=21;controls.minPolarAngle=0.4;controls.maxPolarAngle=1.4;
+  const controls=new OrbitControls(camera,canvas);controls.enabled=false;controls.target.set(0,1.55,-0.35);controls.minDistance=2.4;controls.maxDistance=21;controls.minPolarAngle=0.4;controls.maxPolarAngle=1.4;
   const home=new THREE.Vector3(7.7,6.6,9.2);const close=new THREE.Vector3(0,4.25,6.3);
   let cameraTween: { start: number; from: THREE.Vector3; to: THREE.Vector3; targetFrom: THREE.Vector3; targetTo: THREE.Vector3 } | undefined;
   function resetCamera() { cameraTween=undefined;camera.position.copy(home);controls.target.set(0,1.55,-0.35);if(stage.clientWidth<600)camera.position.multiplyScalar(1.25);controls.update(); }
@@ -50,33 +51,12 @@ export function mountPiano(stage: HTMLElement) {
     for(const mesh of piano.group.children){if(mesh.position.y>3.0)mesh.visible=false;}
     camera.position.set(5.8,6.9,7.5);controls.target.set(0,1.4,-0.35);controls.update();
   }
-  function moveCamera(to:THREE.Vector3,target:THREE.Vector3) { cameraTween={start:performance.now(),from:camera.position.clone(),to:to.clone(),targetFrom:controls.target.clone(),targetTo:target.clone()}; }
+  function moveCamera(to:THREE.Vector3,target:THREE.Vector3) { cancelInteraction();cameraTween={start:performance.now(),from:camera.position.clone(),to:to.clone(),targetFrom:controls.target.clone(),targetTo:target.clone()}; }
   const raycaster=new THREE.Raycaster();const mouse=new THREE.Vector2();
-  function pick(event:PointerEvent) { const rect=canvas.getBoundingClientRect();mouse.set((event.clientX-rect.left)/rect.width*2-1,-(event.clientY-rect.top)/rect.height*2+1);raycaster.setFromCamera(mouse,camera);return raycaster.intersectObjects(piano.hitKeys,false)[0]?.object.userData.midi as number|undefined; }
-  canvas.addEventListener('wheel',event=>{
-    if(event.ctrlKey||event.metaKey)return;
-    const rect=canvas.getBoundingClientRect();
-    mouse.set((event.clientX-rect.left)/rect.width*2-1,-(event.clientY-rect.top)/rect.height*2+1);
-    raycaster.setFromCamera(mouse,camera);
-    const hit=raycaster.intersectObjects([piano.group,voidScene.group],true)[0];
-    if(!hit)return;
-    event.preventDefault();event.stopImmediatePropagation();cameraTween=undefined;
-    const units=event.deltaMode===1?16:event.deltaMode===2?rect.height:1;
-    const delta=Math.max(-240,Math.min(240,event.deltaY*units));
-    const offset=camera.position.clone().sub(controls.target);
-    const distance=THREE.MathUtils.clamp(offset.length()*Math.exp(delta*0.0018),controls.minDistance,controls.maxDistance);
-    camera.position.copy(controls.target).add(offset.setLength(distance));controls.update();
-  },{capture:true,passive:false});
-  canvas.addEventListener('pointerdown',event=>{
-    if(event.button!==0)return;
-    const midi=pick(event);
-    if(midi!==undefined){event.stopImmediatePropagation();event.preventDefault();canvas.setPointerCapture(event.pointerId);pointerNotes.set(event.pointerId,midi);noteOn(midi,0.72,undefined,`pointer:${event.pointerId}`);}
-    else if(pointerNotes.size){event.stopImmediatePropagation();}
-    else cameraTween=undefined;
-  },true);
-  function releasePointer(event:PointerEvent) { const midi=pointerNotes.get(event.pointerId);if(midi!==undefined){event.stopImmediatePropagation();noteOff(midi,undefined,`pointer:${event.pointerId}`);pointerNotes.delete(event.pointerId);if(canvas.hasPointerCapture(event.pointerId))canvas.releasePointerCapture(event.pointerId);} }
-  canvas.addEventListener('pointerup',releasePointer,true);canvas.addEventListener('pointercancel',releasePointer,true);canvas.addEventListener('lostpointercapture',releasePointer,true);
-  canvas.addEventListener('pointermove',event=>{if(pointerNotes.has(event.pointerId)){event.stopImmediatePropagation();return;}canvas.style.cursor=pick(event)!==undefined?'pointer':'grab';},true);
+  function cast(point:{clientX:number;clientY:number}) { const rect=canvas.getBoundingClientRect();mouse.set((point.clientX-rect.left)/rect.width*2-1,-(point.clientY-rect.top)/rect.height*2+1);camera.updateMatrixWorld();piano.group.updateMatrixWorld(true);raycaster.setFromCamera(mouse,camera); }
+  function pick(point:{clientX:number;clientY:number}) { cast(point);return raycaster.intersectObjects(piano.hitKeys,false)[0]?.object.userData.midi as number|undefined; }
+  const interaction=mountSceneInteraction({canvas,camera,controls,driver,pick,hitsScene:point=>{cast(point);return raycaster.intersectObjects([piano.group,voidScene.group],true).length>0;},interrupt:()=>{cameraTween=undefined;}});
+  cancelInteraction=interaction.cancel;
   const panel=document.querySelector<HTMLElement>('#keyboard-panel')!;
   const closeButton=document.querySelector<HTMLButtonElement>('#piano-close')!;
   closeButton.addEventListener('click',()=>{moveCamera(close,new THREE.Vector3(0,1.4,1.0));panel.hidden=false;scrollKeyboard();});
@@ -102,9 +82,9 @@ export function mountPiano(stage: HTMLElement) {
   canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();releaseManual();canvas.style.visibility='hidden';stage.classList.remove('scene-ready');loading.hidden=false;loading.textContent='三维画面已暂停，可使用“靠近键盘”继续弹奏。';});
   canvas.addEventListener('webglcontextrestored',()=>{canvas.style.visibility='';stage.classList.add('scene-ready');loading.hidden=true;resume();});
   window.addEventListener('pageshow',()=>resume());
-  window.addEventListener('pagehide',(event)=>{if(event.persisted){releaseAll();cancelAnimationFrame(frame);frame=0;return;}disposed=true;cancelAnimationFrame(frame);resize.disconnect();observer.disconnect();controls.dispose();driver.dispose();scene.traverse(object=>{if(object instanceof THREE.Mesh){object.geometry.dispose();const materials=Array.isArray(object.material)?object.material:[object.material];materials.forEach(material=>material.dispose());}});environment?.dispose();renderer.dispose();});
+  window.addEventListener('pagehide',(event)=>{releaseManual();if(event.persisted){releaseAll();cancelAnimationFrame(frame);frame=0;return;}disposed=true;cancelAnimationFrame(frame);resize.disconnect();observer.disconnect();interaction.dispose();controls.dispose();driver.dispose();scene.traverse(object=>{if(object instanceof THREE.Mesh){object.geometry.dispose();const materials=Array.isArray(object.material)?object.material:[object.material];materials.forEach(material=>material.dispose());}});environment?.dispose();renderer.dispose();});
   stage.classList.add('scene-ready');loading.hidden=true;resume();
-  if(import.meta.env.DEV){(stage as HTMLElement & { pianoDebug?:unknown }).pianoDebug={audio,noteOn,noteOff,releaseAll,releaseManual,active,camera,player,ready:()=>audio.ready(),keyScreen:(midi:number)=>{const key=piano.hitKeys.find(k=>k.userData.midi===midi)!;const position=key.getWorldPosition(new THREE.Vector3()).project(camera);const rect=canvas.getBoundingClientRect();return{x:rect.left+(position.x+1)*rect.width/2,y:rect.top+(1-position.y)*rect.height/2};}};}
+  if(import.meta.env.DEV){(stage as HTMLElement & { pianoDebug?:unknown }).pianoDebug={audio,noteOn,noteOff,releaseAll,releaseManual,active,camera,controls,player,keyAt:pick,ready:()=>audio.ready(),keyScreen:(midi:number)=>{const key=piano.hitKeys.find(k=>k.userData.midi===midi)!;camera.updateMatrixWorld();key.geometry.computeBoundingBox();const bounds=key.geometry.boundingBox!;const position=key.localToWorld(new THREE.Vector3(0,bounds.max.y+0.001,bounds.max.z*0.7)).project(camera);const rect=canvas.getBoundingClientRect();return{x:rect.left+(position.x+1)*rect.width/2,y:rect.top+(1-position.y)*rect.height/2};}};}
 
   return { noteOn,noteOff,releaseAll,ready:()=>audio.ready(),now:()=>audio.now() };
 
