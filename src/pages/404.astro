@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
 import { href } from '../site';
 ---
-<Base title="页面未找到"><div class="page-shell"><header class="page-header"><p class="eyebrow">404 / 迷路的一页</p><h1>这一页，暂时没有回声。</h1><p>链接可能已更改，或页面尚未发布。</p></header><a class="text-link" href={href()}>回到首页 <span>↗</span></a></div></Base>
+<Base title="页面未找到"><div class="page-shell"><header class="page-header"><p class="eyebrow">404 / 迷路的一页</p><h1>这一页，暂时没有回声。</h1><p>链接可能已更改，或页面尚未发布。</p></header><a class="text-link ui-button" href={href()}><Icon name="back" />回到首页</a></div></Base>
