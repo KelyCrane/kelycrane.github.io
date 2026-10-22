@@ -54,7 +54,7 @@ export function mountMusicPlayer(driver:PianoDriver,base:string){
     finally{if(current===revision&&!disposed){pending=false;render();}}
   }
   function pause(){cancelPending();transport.pause();render();}
-  function setOpen(open:boolean){panel.hidden=!open;toggle.setAttribute('aria-expanded',String(open));}
+  function setOpen(open:boolean){panel.hidden=!open;toggle.setAttribute('aria-expanded',String(open));if(open)panel.focus({preventScroll:true});}
   toggle.addEventListener('click',()=>setOpen(panel.hidden));
   document.querySelector('#music-close')?.addEventListener('click',()=>{setOpen(false);toggle.focus();});
   document.querySelector('#piano-close')?.addEventListener('click',()=>setOpen(false));

@@ -20,7 +20,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site || Astro.url.origin);
 <body>
   <a class="skip-link" href="#main">跳到主要内容</a>
   <header class="site-header" data-pagefind-ignore>
-    <a class="brand" href={href()} aria-label="个人博客首页"><span class="brand-symbol" aria-hidden="true"><PianoMark variant="keys" /></span><span class="brand-names"><b>{site.name}</b><small>{site.englishName}</small></span><span class="brand-dot">·</span></a>
+    <a class="brand" href={href()} aria-label={`${site.name}首页`}><span class="brand-symbol" aria-hidden="true"><PianoMark variant="keys" /></span><span class="brand-names"><b>主页</b><small>{site.name}</small></span><span class="brand-dot">·</span></a>
     <nav aria-label="主导航">{nav.map(([label,path]) => <a href={href(path)} aria-current={Astro.url.pathname.startsWith(href(path)) ? 'page' : undefined}>{label}</a>)}<a class="search-link" href={href('search/')} aria-label="搜索文章"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></a></nav>
   </header>
   <main id="main"><slot /></main>

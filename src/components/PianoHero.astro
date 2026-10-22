@@ -1,6 +1,7 @@
 ---
-import { href } from '../site';
+import { href, site } from '../site';
 import MusicPlayer from './MusicPlayer.astro';
+import music from '../data/music.json';
 interface Props { previewStyle?: string; }
 const {previewStyle='reference'}=Astro.props;
 ---
@@ -9,12 +10,21 @@ const {previewStyle='reference'}=Astro.props;
     <img class="piano-fallback" src={href('images/piano-cover.svg')} alt="白色三角钢琴，悬浮琴盖与向上升起的蓝紫色液滴" width="1200" height="900" />
     <div class="scene-loading" id="scene-loading">正在唤醒钢琴<span></span></div>
   </div>
-  <div class="hero-copy"><p class="eyebrow"><span></span>文字 / 影像 / 声音</p><h1>让声音，<br/>落向<span>虚空。</span></h1><p class="hero-description">在这里，写下所想，留住所见。<br/>也给偶然路过的你，留一架可以弹的钢琴。</p><a class="text-link" href="#latest">翻开我的记录 <span>↘</span></a><span class="identity-placeholder">斜方肌战神 · KelyCrane</span></div>
-  <div class="scene-caption"><span class="caption-line"></span><p>VOID PIANO <span>01 / 互动习作</span></p></div>
+  <div class="hero-copy">
+    <p class="eyebrow"><span></span>可交互式钢琴</p>
+    <h1>记录，<br/>是为了抵抗<span>遗忘。</span></h1>
+    <p class="hero-description">这里存放着我的所见所想。<br/>如果你偶然路过，不妨停下脚步，<br/>用这架钢琴，弹奏属于你的回声。</p>
+    <div class="hero-actions">
+      <button id="music-toggle" class="music-launch" type="button" aria-expanded="false" aria-controls="music-panel"><span class="music-launch-icon" aria-hidden="true">♬</span><span class="music-launch-copy"><b>曲目</b><small>{music.length} 首 · 钢琴自动演奏</small></span><span class="music-launch-arrow" aria-hidden="true">↗</span></button>
+      <a class="text-link" href="#latest">翻开我的记录 <span>↘</span></a>
+    </div>
+    <address class="hero-author" aria-label="作者联系方式"><p>@{site.nickname}</p><a href={`mailto:${site.email}`}>邮箱：{site.email}</a><p>微信：{site.wechat}</p></address>
+  </div>
+  <div class="scene-caption"><span class="caption-line"></span><p>中南民族大学 · 计算机技术 · 刘成</p></div>
   <div class="piano-controls" id="piano-controls">
     <p id="piano-status" role="status" aria-live="polite">非琴键处拖动旋转 · 双指缩放 / 平移 · 琴键支持多指弹奏</p>
     <details class="gesture-help"><summary>操作说明</summary><div id="piano-gesture-help"><p>手机 / 平板：单指拖动非琴键处旋转；双指都从非琴键处起手，捏合缩放、同向拖动平移。琴键上可多指弹奏和弦。</p><p>电脑：右键拖动或 Shift＋左键拖动平移；左键拖动非琴键处旋转，钢琴处滚轮缩放。</p><p>调整后点击“初始视角”复位；点击“靠近键盘”可打开完整 88 键键盘。</p></div></details>
-    <div class="control-row"><button id="music-toggle" type="button" aria-expanded="false" aria-controls="music-panel">♬ <span>曲目</span></button><button id="piano-enable" type="button">♪ <span>音色</span></button><button id="piano-home" type="button">↺ <span>初始视角</span></button><button id="piano-close" type="button">⌕ <span>靠近键盘</span></button><button id="piano-mute" type="button" aria-pressed="false">♫ <span>静音</span></button><label class="volume-label">音量<input id="piano-volume" type="range" min="0" max="100" value="65" aria-label="钢琴音量" /></label></div>
+    <div class="control-row"><button id="piano-home" type="button">↺ <span>初始视角</span></button><button id="piano-close" type="button">⌕ <span>靠近键盘</span></button><button id="piano-mute" type="button" aria-pressed="false">♫ <span>静音</span></button><label class="volume-label">音量<input id="piano-volume" type="range" min="0" max="100" value="65" aria-label="钢琴音量" /></label></div>
   </div>
   <a class="scroll-hint" href="#latest" aria-label="向下浏览文章"><span>向下探索</span><span>↓</span></a>
   <div class="keyboard-panel" id="keyboard-panel" hidden><div class="keyboard-panel-head"><p>触摸或点击琴键弹奏 <span>完整 88 键 · 横向滚动</span></p><button id="keyboard-close" type="button" aria-label="关闭放大键盘">×</button></div><div class="keyboard-scroll"><div id="flat-keyboard" role="group" aria-label="可弹奏的完整钢琴键盘"></div></div></div>

@@ -62,7 +62,6 @@ export function mountPiano(stage: HTMLElement) {
   closeButton.addEventListener('click',()=>{moveCamera(close,new THREE.Vector3(0,1.4,1.0));panel.hidden=false;scrollKeyboard();});
   document.querySelector('#piano-home')?.addEventListener('click',()=>{releaseManual();panel.hidden=true;moveCamera(stage.clientWidth<600?home.clone().multiplyScalar(1.25):home,new THREE.Vector3(0,1.55,-0.35));});
   document.querySelector('#keyboard-close')?.addEventListener('click',()=>{releaseManual();panel.hidden=true;});
-  document.querySelector('#piano-enable')?.addEventListener('click',()=>{void audio.ready().catch(()=>{});});
   const muteButton=document.querySelector<HTMLButtonElement>('#piano-mute')!;
   muteButton.addEventListener('click',()=>{const muted=muteButton.getAttribute('aria-pressed')!=='true';muteButton.setAttribute('aria-pressed',String(muted));muteButton.querySelector('span')!.textContent=muted?'取消静音':'静音';audio.setMuted(muted);});
   document.querySelector<HTMLInputElement>('#piano-volume')?.addEventListener('input',event=>audio.setVolume(Number((event.target as HTMLInputElement).value)/100));
@@ -97,7 +96,6 @@ export function mountPiano(stage: HTMLElement) {
     document.querySelector('#piano-home')?.addEventListener('click',()=>{release();panel.hidden=true;});
     document.querySelector<HTMLInputElement>('#piano-volume')?.addEventListener('input',event=>fallbackAudio.setVolume(Number((event.target as HTMLInputElement).value)/100));
     document.querySelector('#piano-mute')?.addEventListener('click',event=>{const button=event.currentTarget as HTMLButtonElement;const muted=button.getAttribute('aria-pressed')!=='true';button.setAttribute('aria-pressed',String(muted));button.querySelector('span')!.textContent=muted?'取消静音':'静音';fallbackAudio.setMuted(muted);});
-    document.querySelector('#piano-enable')?.addEventListener('click',()=>{void fallbackAudio.ready().catch(()=>{});});
     window.addEventListener('blur',release);document.addEventListener('visibilitychange',()=>{if(document.hidden)release();});window.addEventListener('pagehide',event=>{release();if(!event.persisted)driver.dispose();});
   }
 }

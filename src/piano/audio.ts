@@ -35,7 +35,7 @@ export class PianoAudio {
       await new Promise<void>((resolve,reject)=>{this.buffers=new Tone.ToneAudioBuffers({urls,baseUrl:`${this.base}audio/piano/`,onload:resolve,onerror:reject});});
       if(this.disposed){this.buffers?.dispose();this.gain?.dispose();return;}
       this.status('音色就绪 · 可手动弹奏或播放曲目');
-    })().catch(error=>{this.buffers?.dispose();this.gain?.dispose();this.buffers=undefined;this.gain=undefined;this.initializing=undefined;this.status('音色加载失败 · 点击“音色”或播放可重试');throw error;});
+    })().catch(error=>{this.buffers?.dispose();this.gain?.dispose();this.buffers=undefined;this.gain=undefined;this.initializing=undefined;this.status('音色加载失败 · 再次弹奏琴键或点击播放重试');throw error;});
     return this.initializing;
   }
   now(){return this.context?.currentTime??0;}
