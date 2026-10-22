@@ -1,5 +1,6 @@
 ---
 import Base from './Base.astro';
+import ArticlePhotoViewer from '../components/ArticlePhotoViewer.astro';
 import { dateLabel, href } from '../site';
 interface Props { entry: { data: {title:string;description:string;date:Date;demo?:boolean;tags:string[];category?:string} }; headings: { depth:number;slug:string;text:string }[]; type?: 'blog'|'work'; }
 const { entry,headings,type='blog' }=Astro.props;
@@ -11,4 +12,5 @@ const { entry,headings,type='blog' }=Astro.props;
 <div class="chips" data-pagefind-ignore>{entry.data.tags.map(tag=><a class="chip" href={href(`tags/${encodeURIComponent(tag)}/`)}>#{tag}</a>)}</div>
 <a class="back-link" href={href(`${type}/`)}>← 返回{type==='blog'?'文章':'作品'}列表</a>
 </article><aside class="toc" aria-label="文章目录" data-pagefind-ignore><h2>本页目录</h2>{headings.length?<ul>{headings.filter(h=>h.depth===2||h.depth===3).map(h=><li style={h.depth===3?'padding-left:12px':''}><a href={`#${h.slug}`}>{h.text}</a></li>)}</ul>:<p>这篇内容暂无分节。</p>}</aside></div>
+<ArticlePhotoViewer />
 </Base>

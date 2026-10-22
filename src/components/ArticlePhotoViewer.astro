@@ -1,0 +1,48 @@
+<dialog class="lightbox article-photo-viewer" aria-label="文章照片大图" data-pagefind-ignore>
+  <button class="lightbox-close" type="button" aria-label="关闭大图" autofocus>×</button>
+  <button class="lightbox-nav lightbox-prev" type="button" aria-label="上一张照片">←</button>
+  <img alt="" />
+  <p class="photo-viewer-caption" aria-live="polite"></p>
+  <button class="lightbox-nav lightbox-next" type="button" aria-label="下一张照片">→</button>
+  <div class="photo-viewer-feedback" hidden><p role="status"></p><div hidden><button type="button" class="photo-viewer-retry">重试</button><a class="photo-viewer-original" target="_blank" rel="noreferrer">打开图片</a></div></div>
+</dialog>
+
+<script>
+  const dialog = document.querySelector<HTMLDialogElement>('.article-photo-viewer');
+  const links = Array.from(document.querySelectorAll<HTMLAnchorElement>('.prose a.article-photo'));
+  if (dialog && links.length) {
+    const image = dialog.querySelector<HTMLImageElement>('img')!;
+    const caption = dialog.querySelector<HTMLElement>('.photo-viewer-caption')!;
+    const feedback = dialog.querySelector<HTMLElement>('.photo-viewer-feedback')!;
+    const feedbackText = feedback.querySelector<HTMLElement>('[role=status]')!;
+    const recovery = feedback.querySelector<HTMLElement>('div')!;
+    const original = dialog.querySelector<HTMLAnchorElement>('.photo-viewer-original')!;
+    let index = 0, trigger: HTMLAnchorElement | undefined, previousOverflow = '';
+    function show(next: number) {
+      index = (next + links.length) % links.length;
+      const link = links[index], thumbnail = link.querySelector('img')!;
+      image.hidden = true;
+      feedback.hidden = false; recovery.hidden = true; feedbackText.textContent = '正在加载照片…';
+      caption.textContent = `${index + 1} / ${links.length} · ${link.dataset.caption || thumbnail.alt}`;
+      image.alt = thumbnail.alt; original.href = link.href;
+      image.src = link.href;
+    }
+    image.addEventListener('load', () => { if (dialog.open) { image.hidden = false; feedback.hidden = true; } });
+    image.addEventListener('error', () => { if (dialog.open) { image.hidden = true; feedback.hidden = false; recovery.hidden = false; feedbackText.textContent = '照片暂时未能加载，请重试。'; } });
+    links.forEach((link, next) => link.addEventListener('click', event => {
+      if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+      event.preventDefault(); trigger = link; previousOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden'; dialog.showModal(); show(next);
+    }));
+    dialog.querySelector('.lightbox-close')?.addEventListener('click', () => dialog.close());
+    dialog.querySelector('.lightbox-prev')?.addEventListener('click', () => show(index - 1));
+    dialog.querySelector('.lightbox-next')?.addEventListener('click', () => show(index + 1));
+    dialog.querySelector('.photo-viewer-retry')?.addEventListener('click', () => { image.removeAttribute('src'); show(index); });
+    dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close(); });
+    dialog.addEventListener('keydown', event => {
+      if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') { event.preventDefault(); show(index + (event.key === 'ArrowRight' ? 1 : -1)); }
+    });
+    dialog.addEventListener('close', () => { document.body.style.overflow = previousOverflow; image.removeAttribute('src'); trigger?.focus({ preventScroll: true }); });
+    window.addEventListener('pagehide', () => { if (dialog.open) { dialog.close(); document.body.style.overflow = previousOverflow; } });
+  }
+</script>
