@@ -4,7 +4,7 @@ import { site, href } from '../site';
 import PianoMark from '../components/PianoMark.astro';
 interface Props { title?: string; description?: string; }
 const { title, description = site.description } = Astro.props;
-const nav = [['文章','blog/'],['作品','work/'],['相册','albums/'],['关于','about/']];
+const nav = [['文章','blog/'],['作品','work/'],['相册','albums/'],['日志','updates/'],['关于','about/']];
 const canonical = new URL(Astro.url.pathname, Astro.site || Astro.url.origin);
 ---
 <!doctype html>

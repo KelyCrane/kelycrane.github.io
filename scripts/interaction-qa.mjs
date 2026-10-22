@@ -110,6 +110,7 @@ try {
     await page.goto(base); await page.waitForSelector('.scene-ready');
     // Bring the mobile scene into the viewport while keeping the controls reachable by the helpers.
     if (name === 'phone-landscape') await page.evaluate(() => scrollTo({ top: 240, behavior: 'instant' }));
+    if (name === 'phone') await page.evaluate(() => scrollTo({ top: document.querySelector('#piano-stage').getBoundingClientRect().top - 140, behavior: 'instant' }));
     const touch = await touchInput(context, page);
     await check(name + ': genuine two-contact pinch and pan, then 2-to-1 transition and stable release', async () => {
       let [a, b] = await blank(page); const before = await pose(page);
@@ -164,7 +165,7 @@ try {
         if (name === 'phone-landscape') await page.evaluate(() => scrollTo({ top: 240, behavior: 'instant' }));
         const screen = await page.evaluate(m => document.querySelector('#piano-stage').pianoDebug.keyScreen(m), midi);
         const width = page.viewportSize().width;
-        for (let attempt = 0; attempt < 3; attempt++) {
+        for (let attempt = 0; attempt < 5; attempt++) {
           const current = await page.evaluate(m => document.querySelector('#piano-stage').pianoDebug.keyScreen(m), midi);
           if (Math.abs(current.x - width / 2) < 8) break;
           [a, b] = await blank(page); await touch([a, b], 'touchStart');

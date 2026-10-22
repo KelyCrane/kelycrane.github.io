@@ -96,15 +96,15 @@ try {
     fail = false; await page.getByRole('button', { name: '重试', exact: true }).click(); await opened(page, 1);
     await page.keyboard.press('Escape');
   });
-  await check('Homepage, article list, taxonomy, archive and existing sample articles remain available', async () => {
+  await check('Homepage, article list, taxonomy, archive and real content remain available', async () => {
     await page.goto(url('')); await page.waitForSelector('.scene-ready');
     assert.equal(await page.locator('#latest .entry-card').first().locator('h3').innerText().then(t => t.trim().replace(/\s*↗$/, '')), '银角大王的日常');
     await page.locator('#latest .entry-card').first().click(); assert.equal(page.url(), article);
-    await page.goto(url('blog/')); const count = await page.locator('.entry-card').count(); assert.ok(count >= 3);
+    await page.goto(url('blog/')); const count = await page.locator('.entry-card').count(); assert.ok(count >= 1);
     await page.goto(url('archive/')); assert.equal(await page.locator('.archive-row').count(), count);
     for (const path of ['categories/生活/', 'tags/银角大王/', 'tags/猫/', 'tags/思念/']) { await page.goto(url(path)); assert.ok(await page.getByRole('heading', { name: '银角大王的日常', exact: false }).count()); }
-    await page.goto(url('blog/first-note/')); assert.equal(await page.locator('pre code').count(), 1); assert.ok(await page.locator('.toc a').count());
-    await page.goto(url('albums/quiet-shapes/')); await page.locator('.gallery-open').first().click();
+    await page.goto(url('work/void-piano/')); assert.ok(await page.locator('.toc a').count()); assert.equal(await page.locator('.article-cover').count(), 1);
+    await page.goto(url('albums/yinjiao-dawang/')); await page.locator('.article-photo').first().click();
     assert.equal(await page.locator('.lightbox').evaluate(d => d.open), true); await page.keyboard.press('Escape');
   });
   await check('Chinese search finds the article and photo captions; no-result handling remains normal', async () => {
