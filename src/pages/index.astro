@@ -3,6 +3,7 @@ import Base from '../layouts/Base.astro';
 import PianoHero from '../components/PianoHero.astro';
 import EntryCard from '../components/EntryCard.astro';
 import AlbumCard from '../components/AlbumCard.astro';
+import Icon from '../components/Icon.astro';
 import { posts, projects, albums } from '../lib/content';
 import { href } from '../site';
 const recent = (await posts()).slice(0,3);
@@ -12,8 +13,8 @@ const photos = (await albums()).filter(e => e.data.featured).slice(0,3);
 <Base>
 <PianoHero />
 <div class="home-content">
-<section class="content-section" id="latest"><div class="section-heading"><div><p class="eyebrow">01 / JOURNAL</p><h2>最近写下的</h2></div><a class="text-link" href={href('blog/')}>全部文章 <span>↗</span></a></div>{recent.length ? <div class="entry-grid">{recent.map(entry => <EntryCard entry={entry} />)}</div> : <p class="empty-state">第一篇文章，还在酝酿中。</p>}</section>
-<section class="content-section"><div class="section-heading"><div><p class="eyebrow">02 / SELECTED WORK</p><h2>把想法变成作品</h2></div><a class="text-link" href={href('work/')}>全部作品 <span>↗</span></a></div>{work.length ? <div class="entry-grid">{work.map((entry,index) => <EntryCard entry={entry} type="work" index={index} />)}</div> : <p class="empty-state">新的作品，会在这里慢慢出现。</p>}</section>
-<section class="content-section"><div class="section-heading"><div><p class="eyebrow">03 / THROUGH THE LENS</p><h2>留住一些瞬间</h2></div><a class="text-link" href={href('albums/')}>全部相册 <span>↗</span></a></div>{photos.length ? <div class="album-grid">{photos.map(entry => <AlbumCard entry={entry} />)}</div> : <p class="empty-state">相册等待第一张照片。</p>}</section>
+<section class="content-section" id="latest"><div class="section-heading"><div><p class="eyebrow">01 / JOURNAL</p><h2>最近写下的</h2></div><a class="text-link ui-button" href={href('blog/')}><Icon name="book" />全部文章 <Icon name="forward" /></a></div>{recent.length ? <div class="entry-grid">{recent.map(entry => <EntryCard entry={entry} />)}</div> : <p class="empty-state">第一篇文章，还在酝酿中。</p>}</section>
+<section class="content-section"><div class="section-heading"><div><p class="eyebrow">02 / SELECTED WORK</p><h2>把想法变成作品</h2></div><a class="text-link ui-button" href={href('work/')}><Icon name="work" />全部作品 <Icon name="forward" /></a></div>{work.length ? <div class="entry-grid">{work.map((entry,index) => <EntryCard entry={entry} type="work" index={index} />)}</div> : <p class="empty-state">新的作品，会在这里慢慢出现。</p>}</section>
+<section class="content-section"><div class="section-heading"><div><p class="eyebrow">03 / THROUGH THE LENS</p><h2>留住一些瞬间</h2></div><a class="text-link ui-button" href={href('albums/')}><Icon name="images" />全部相册 <Icon name="forward" /></a></div>{photos.length ? <div class="album-grid">{photos.map(entry => <AlbumCard entry={entry} />)}</div> : <p class="empty-state">相册等待第一张照片。</p>}</section>
 </div>
 </Base>

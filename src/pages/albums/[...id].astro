@@ -1,6 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
 import ArticlePhotoViewer from '../../components/ArticlePhotoViewer.astro';
+import Icon from '../../components/Icon.astro';
 import { albums } from '../../lib/content';
 import { href } from '../../site';
 export async function getStaticPaths(){return (await albums()).map(entry=>({params:{id:entry.id},props:{entry}}));}
@@ -15,7 +16,7 @@ const sections = [...new Set(entry.data.images.map(image=>image.section || ''))]
       {sections.map(section=><section aria-label={section || '相册照片'}>{section && <h2>{section}</h2>}<div class="gallery">{entry.data.images.filter(image=>(image.section || '')===section).map((image,index)=><figure><a class="article-photo" href={href(image.full || image.src)} data-caption={image.caption || image.alt} aria-label={`查看大图：${image.alt}`}><img src={href(image.src)} srcset={image.sources?.map(source=>`${href(source.src)} ${source.width}w`).join(', ')} sizes="(max-width:600px) 84vw, (max-width:1150px) 40vw, 470px" alt={image.alt} width={image.width} height={image.height} loading={section===sections[0] && index===0?'eager':'lazy'} /></a><figcaption>{image.caption || image.alt}</figcaption></figure>)}</div></section>)}
     </div>
     {!entry.data.images.length&&<p class="empty-state">这个相册还没有照片。</p>}
-    <a class="back-link" href={href('albums/')}>← 返回相册</a>
+    <a class="back-link ui-button" href={href('albums/')}><Icon name="back" />返回相册</a>
   </div>
   <ArticlePhotoViewer />
 </Base>

@@ -3,6 +3,7 @@ import { defaultTrack } from './catalog.mjs';
 import { PlaybackTransport } from './transport.mjs';
 import { validateScore } from './score.mjs';
 import type { PianoDriver } from './driver';
+import { updateButtonIcon } from '../ui/icons.mjs';
 export function mountMusicPlayer(driver:PianoDriver,base:string){
   const panel=document.querySelector<HTMLElement>('#music-panel')!;
   const toggle=document.querySelector<HTMLButtonElement>('#music-toggle')!;
@@ -22,7 +23,9 @@ export function mountMusicPlayer(driver:PianoDriver,base:string){
     if(disposed)return;
     const playing=transport.state==='playing';
     const label=pending?'取消':playing?'暂停':error?'重试':'播放';
-    play.innerHTML=`${pending?'…':playing?'Ⅱ':'▶'} <span>${label}</span>`;
+    updateButtonIcon(play,pending?'loading':playing?'pause':error?'retry':'play');
+    if(play.querySelector('span')!.textContent!==label)play.querySelector('span')!.textContent=label;
+    play.setAttribute('aria-busy',String(pending));
     play.setAttribute('aria-label',`${label}所选曲目`);
     panel.dataset.state=pending?'loading':error?'error':transport.state;
     if(!scrubbing){progress.value=String(transport.position);elapsed.textContent=format(transport.position);}

@@ -2,12 +2,13 @@
 import Base from '../layouts/Base.astro';
 import updates from '../data/updates.json';
 import { href } from '../site';
+import Icon from '../components/Icon.astro';
 ---
 <Base title="更新日志" description="记录这个博客每一次新增的功能、内容与调整。">
   <div class="page-shell updates-page" data-pagefind-body>
     <header class="page-header"><p class="eyebrow">CHANGELOG / 一点点生长</p><h1 data-pagefind-meta="title">更新日志</h1><p>记录这个小站的变化，也留住每一步走来的痕迹。</p></header>
     <div class="update-timeline">
-      {updates.map(update=><article class="update-entry" id={update.id}><time datetime={update.date}>{update.date.replaceAll('-',' / ')}</time><div><h2>{update.title}</h2><ul>{update.items.map(item=><li>{item}</li>)}</ul>{update.links.length>0&&<div class="update-links">{update.links.map(link=><a class="text-link" href={href(link.path)}>{link.label}<span aria-hidden="true">↗</span></a>)}</div>}</div></article>)}
+      {updates.map(update=><article class="update-entry" id={update.id}><time datetime={update.date}>{update.date.replaceAll('-',' / ')}</time><div><h2>{update.title}</h2><ul>{update.items.map(item=><li>{item}</li>)}</ul>{update.links.length>0&&<div class="update-links">{update.links.map(link=><a class="text-link ui-button" href={href(link.path)}>{link.label}<Icon name="outward" /></a>)}</div>}</div></article>)}
     </div>
   </div>
 </Base>

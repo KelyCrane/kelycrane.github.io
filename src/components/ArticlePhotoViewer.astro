@@ -1,10 +1,13 @@
+---
+import Icon from './Icon.astro';
+---
 <dialog class="lightbox article-photo-viewer" aria-label="照片大图" data-pagefind-ignore>
-  <button class="lightbox-close" type="button" aria-label="关闭大图" autofocus>×</button>
-  <button class="lightbox-nav lightbox-prev" type="button" aria-label="上一张照片">←</button>
+  <button class="lightbox-close ui-button ui-icon-button" type="button" aria-label="关闭大图" autofocus><Icon name="close" /></button>
+  <button class="lightbox-nav lightbox-prev ui-button ui-icon-button" type="button" aria-label="上一张照片"><Icon name="back" /></button>
   <img alt="" />
   <p class="photo-viewer-caption" aria-live="polite"></p>
-  <button class="lightbox-nav lightbox-next" type="button" aria-label="下一张照片">→</button>
-  <div class="photo-viewer-feedback" hidden><p role="status"></p><div hidden><button type="button" class="photo-viewer-retry">重试</button><a class="photo-viewer-original" target="_blank" rel="noreferrer">打开图片</a></div></div>
+  <button class="lightbox-nav lightbox-next ui-button ui-icon-button" type="button" aria-label="下一张照片"><Icon name="forward" /></button>
+  <div class="photo-viewer-feedback" hidden><p role="status"></p><div hidden><button type="button" class="photo-viewer-retry ui-button"><Icon name="retry" />重试</button><a class="photo-viewer-original ui-button" target="_blank" rel="noreferrer"><Icon name="external" />打开图片</a></div></div>
 </dialog>
 
 <script>

@@ -1,0 +1,27 @@
+/* Confirmed design: 柔和浮雕, button radius 30px. Piano keys keep their own geometry. */
+:root{--control-radius:30px;--control-surface:#f7f5f2;--control-shadow:#65526f26;--control-glint:#ffffffb0;--control-raised:5px 5px 13px var(--control-shadow),-4px -4px 12px var(--control-glint);--control-inset:inset 3px 3px 8px var(--control-shadow),inset -2px -2px 6px var(--control-glint)}
+.ui-icon{display:block;width:18px;height:18px;flex-shrink:0;pointer-events:none;vertical-align:middle}
+.ui-button,.hero .music-launch.ui-button,.control-row .view-controls .ui-button,.music-panel .music-actions .ui-button,.keyboard-panel-head .ui-button,.section-heading .text-link.ui-button,.update-links .text-link.ui-button,.lightbox .ui-button{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:44px;padding:10px 16px;border:1px solid transparent;border-radius:var(--control-radius);background:var(--control-current-bg,var(--control-surface));color:var(--control-current-ink,var(--ink));box-shadow:var(--control-current-shadow,var(--control-raised));text-decoration:none;line-height:1.5;transform:none;transition:var(--control-transition,transform .16s,box-shadow .16s,background-color .16s,color .16s);backdrop-filter:none}
+.ui-button:hover{--control-current-shadow:7px 7px 17px var(--control-shadow),-5px -5px 14px var(--control-glint)}
+.ui-button:active,.ui-button[aria-pressed=true],.ui-button[aria-expanded=true]{--control-current-shadow:var(--control-inset)}
+.ui-primary,.ui-button[aria-pressed=true]{--control-current-bg:var(--accent);--control-current-ink:#fff}
+.hero .music-launch.ui-primary{gap:12px;min-height:64px;padding:12px 18px;text-align:left}
+.music-launch-icon .ui-icon{width:25px;height:25px}.music-launch-arrow .ui-icon{width:19px;height:19px}.music-launch-arrow{display:flex;margin-left:2px}.music-launch-copy small{color:#f5edf9}
+.hero-actions .text-link .ui-icon{color:var(--accent)}
+.piano-controls .control-row{gap:18px;flex-wrap:wrap;justify-content:flex-end}
+.view-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;width:320px;max-width:100%}
+.control-row .view-controls .ui-button{flex-direction:column;gap:7px;height:auto;min-height:76px;padding:13px 6px;font-size:13px}
+.control-row .view-controls .ui-button span{font-size:12px;margin:0;white-space:nowrap}
+.control-row .volume-label{margin-left:0}.gesture-help summary{display:inline-flex;gap:5px;align-items:center;min-height:30px}.gesture-help summary .ui-icon{width:14px;height:14px}
+.gesture-help summary::-webkit-details-marker{display:none}
+.ui-icon-button,.keyboard-panel-head .ui-icon-button,.music-panel header .ui-icon-button,.lightbox .ui-icon-button{width:44px;height:44px;min-width:44px;min-height:44px;padding:11px;border-radius:var(--control-radius)}
+.keyboard-panel-head .ui-icon-button{flex-shrink:0}.music-panel header .ui-icon-button{margin-top:0}
+.section-heading .text-link.ui-button{gap:9px;font-size:13px;white-space:nowrap}.section-heading .text-link.ui-button>.ui-icon:last-child{width:16px;height:16px;color:var(--accent)}
+.back-link.ui-button{margin-top:36px;font-size:14px}.chip.ui-button{min-height:40px;padding:8px 14px;font-size:13px}.update-links .ui-button{font-size:13px}
+.music-panel .music-actions .ui-button{font-size:13px;gap:7px;padding:10px 13px;flex:1;white-space:nowrap}.music-panel .music-actions .ui-primary{min-width:82px}.music-actions .ui-button[aria-busy=true] .ui-icon{animation:control-loading 1.2s linear infinite}
+.lightbox{--control-surface:#302a38;--control-shadow:#08060c80;--control-glint:#65547255;--ink:#fff}.lightbox .ui-button{color:#fff}.lightbox .lightbox-nav.ui-button{position:absolute}.lightbox .photo-viewer-retry,.lightbox .photo-viewer-original{font-size:13px}
+.scroll-hint>.ui-icon{width:20px;height:20px}
+@keyframes control-loading{to{transform:rotate(360deg)}}
+@media(max-width:900px){.view-controls{width:300px}.piano-controls .control-row{gap:12px}}
+@media(max-width:600px){.piano-controls .control-row{justify-content:flex-start;gap:12px}.view-controls{width:100%;gap:10px}.control-row .view-controls .ui-button{min-height:72px;padding:12px 5px}.hero .music-launch.ui-primary{min-height:60px;padding:10px 14px;gap:9px}.music-launch-copy small{font-size:10px}.music-launch-copy b{font-size:13px}.hero-actions{gap:12px 16px}.hero-author{margin-top:18px}.scene-caption{bottom:275px}.keyboard-panel{bottom:245px}.section-heading .text-link.ui-button{padding:10px 13px;font-size:12px;gap:7px}.section-heading .text-link.ui-button>.ui-icon:first-child{display:none}.piano-controls .volume-label{margin-top:2px}.music-panel .music-actions .ui-button{padding:10px 11px;min-height:44px;gap:6px}.music-panel .music-actions .ui-button .ui-icon{width:16px;height:16px}}
+@media(prefers-reduced-motion:reduce){:root{--control-transition:none}.music-actions .ui-button[aria-busy=true] .ui-icon{animation:none}}

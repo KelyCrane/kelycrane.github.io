@@ -1,0 +1,6 @@
+---
+import { iconMarkup } from '../ui/icons.mjs';
+interface Props { name: string; }
+const { name } = Astro.props;
+---
+<Fragment set:html={iconMarkup(name)} />

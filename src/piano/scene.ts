@@ -9,6 +9,7 @@ import { makeKeyLayout } from './notes.mjs';
 import { createPianoDriver } from './driver';
 import { mountMusicPlayer } from './player';
 import { mountSceneInteraction } from './interaction';
+import { updateButtonIcon } from '../ui/icons.mjs';
 
 export function mountPiano(stage: HTMLElement) {
   const status = document.querySelector<HTMLElement>('#piano-status')!;
@@ -63,7 +64,7 @@ export function mountPiano(stage: HTMLElement) {
   document.querySelector('#piano-home')?.addEventListener('click',()=>{releaseManual();panel.hidden=true;moveCamera(stage.clientWidth<600?home.clone().multiplyScalar(1.25):home,new THREE.Vector3(0,1.55,-0.35));});
   document.querySelector('#keyboard-close')?.addEventListener('click',()=>{releaseManual();panel.hidden=true;});
   const muteButton=document.querySelector<HTMLButtonElement>('#piano-mute')!;
-  muteButton.addEventListener('click',()=>{const muted=muteButton.getAttribute('aria-pressed')!=='true';muteButton.setAttribute('aria-pressed',String(muted));muteButton.querySelector('span')!.textContent=muted?'取消静音':'静音';audio.setMuted(muted);});
+  muteButton.addEventListener('click',()=>{const muted=muteButton.getAttribute('aria-pressed')!=='true';muteButton.setAttribute('aria-pressed',String(muted));muteButton.querySelector('span')!.textContent=muted?'取消静音':'静音';updateButtonIcon(muteButton,muted?'muted':'volume');audio.setMuted(muted);});
   document.querySelector<HTMLInputElement>('#piano-volume')?.addEventListener('input',event=>audio.setVolume(Number((event.target as HTMLInputElement).value)/100));
   populateKeyboard(noteOn,noteOff,releaseManual);
   const resize = new ResizeObserver(()=>{const width=stage.clientWidth,height=stage.clientHeight;renderer.setSize(width,height);camera.aspect=width/height;camera.updateProjectionMatrix();});resize.observe(stage);
@@ -95,7 +96,7 @@ export function mountPiano(stage: HTMLElement) {
     document.querySelector('#piano-close')?.addEventListener('click',()=>{panel.hidden=false;scrollKeyboard();});document.querySelector('#keyboard-close')?.addEventListener('click',()=>{release();panel.hidden=true;});
     document.querySelector('#piano-home')?.addEventListener('click',()=>{release();panel.hidden=true;});
     document.querySelector<HTMLInputElement>('#piano-volume')?.addEventListener('input',event=>fallbackAudio.setVolume(Number((event.target as HTMLInputElement).value)/100));
-    document.querySelector('#piano-mute')?.addEventListener('click',event=>{const button=event.currentTarget as HTMLButtonElement;const muted=button.getAttribute('aria-pressed')!=='true';button.setAttribute('aria-pressed',String(muted));button.querySelector('span')!.textContent=muted?'取消静音':'静音';fallbackAudio.setMuted(muted);});
+    document.querySelector('#piano-mute')?.addEventListener('click',event=>{const button=event.currentTarget as HTMLButtonElement;const muted=button.getAttribute('aria-pressed')!=='true';button.setAttribute('aria-pressed',String(muted));button.querySelector('span')!.textContent=muted?'取消静音':'静音';updateButtonIcon(button,muted?'muted':'volume');fallbackAudio.setMuted(muted);});
     window.addEventListener('blur',release);document.addEventListener('visibilitychange',()=>{if(document.hidden)release();});window.addEventListener('pagehide',event=>{release();if(!event.persisted)driver.dispose();});
   }
 }
